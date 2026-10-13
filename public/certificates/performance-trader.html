@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ElectraPips — Performance Trader Certificate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<section class="controls" aria-label="Certificate details">
+  <h2>Certificate details</h2>
+  <p>Generate a Performance Trader (CML) certificate. Fill in the details below — the certificate updates live.</p>
+
+  <div class="typeTabs" role="tablist" style="display:none">
+    <button type="button" data-type="phase1">Phase 1 Passed</button>
+    <button type="button" data-type="funded" class="active">Performance Trader</button>
+    <button type="button" data-type="payout">Payout</button>
+    <button type="button" data-type="totalpayout">Total Payout</button>
+    <button type="button" data-type="affiliate">Affiliate Payout</button>
+  </div>
+
+  <div class="fields">
+    <label class="field">Trader name<input id="f-name" type="text" value="" placeholder="Enter trader's full name" autocomplete="off"></label>
+
+    <label class="field" data-for="phase1,funded">Account size (USD)<input id="f-size" type="text" inputmode="numeric" value="100000" autocomplete="off"></label>
+    <label class="field" data-for="payout">Payout amount (USD)<input id="f-payout" type="text" inputmode="numeric" value="4820" autocomplete="off"></label>
+    <label class="field" data-for="totalpayout">Total payouts to date (USD)<input id="f-totalamt" type="text" inputmode="numeric" value="24500" autocomplete="off"></label>
+    <label class="field" data-for="affiliate">Affiliate payout amount (USD)<input id="f-affamt" type="text" inputmode="numeric" value="1250" autocomplete="off"></label>
+
+    <label class="field" data-for="phase1,funded,payout">Program
+      <select id="f-program">
+        <option value="2step">2-Step Evaluation</option>
+        <option value="1step" id="opt-1step">1-Step Evaluation</option>
+        <option value="pap" id="opt-pap">PAP</option>
+        <option value="direct" id="opt-direct">Direct</option>
+      </select>
+    </label>
+
+    <label class="field" data-for="phase1">Profit target reached (%)<input id="f-target" type="text" inputmode="numeric" value="8" autocomplete="off"></label>
+    <label class="field" data-for="funded">Profit split (%)<input id="f-split" type="text" inputmode="numeric" value="85" autocomplete="off"></label>
+    <label class="field" data-for="funded">Award level<input id="f-award" type="text" value="CML" autocomplete="off"></label>
+    <label class="field" data-for="payout">Payout number<input id="f-payoutno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
+    <label class="field" data-for="totalpayout">Number of payouts<input id="f-paycount" type="text" inputmode="numeric" value="6" autocomplete="off"></label>
+    <label class="field" data-for="totalpayout">Trader since<input id="f-since" type="date" value="2026-03-01"></label>
+    <label class="field" data-for="affiliate">Payout number<input id="f-affno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
+    <label class="field" data-for="affiliate">Affiliate ID<input id="f-affid" type="text" value="AP-1029" autocomplete="off"></label>
+
+    <label class="field">Date issued<input id="f-date" type="date" value="2026-09-21"></label>
+    <label class="field">Certificate number<input id="f-id" type="text" value="EP-P1-2026-000123" autocomplete="off"></label>
+    <label class="field">Signatory name<input id="f-signer" type="text" value="Luqman" autocomplete="off"></label>
+    <label class="field">Signatory title<input id="f-title" type="text" value="CEO and Founder" autocomplete="off"></label>
+  </div>
+  <div class="actions">
+    <button class="btn" id="print-btn" type="button">Print / Save as PDF</button>
+    <button class="btn btn-ghost" id="save-img-btn" type="button" hidden>Save as Image</button>
+    <span id="action-note">Print-ka waa A4 dherer-jiif (landscape).</span>
+  </div>
+</section>
+
+<main class="stage">
+  <div class="cert" id="cert">
+    <div class="bar"></div>
+    <div class="glow"></div>
+    <div class="frame"></div>
+
+    <div class="wm">
+    <svg viewBox="0 0 600 300" fill="none" aria-hidden="true" style="width:100%;height:100%;display:block">
+      <defs>
+        <linearGradient id="wmg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2f7bff" stop-opacity="0"/>
+          <stop offset=".6" stop-color="#2f7bff" stop-opacity=".28"/>
+          <stop offset="1" stop-color="#0ea5e9" stop-opacity=".55"/>
+        </linearGradient>
+      </defs>
+      <path d="M0 262 L60 236 L110 248 L170 196 L230 210 L290 146 L350 166 L420 96 L480 116 L560 34 L600 46" stroke="url(#wmg)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="560" cy="34" r="4" fill="#0ea5e9" fill-opacity=".6"/>
+    </svg>
+    </div>
+
+    <div class="ribbon">Awarded</div>
+
+    <div class="face">
+      <div class="head">
+        <div class="brand">
+          <div class="logo" role="img" aria-label="ElectraPips logo"></div>
+          <span class="wordmark">ElectraPips</span>
+        </div>
+        <div class="certno">Certificate No. <span id="o-id">EP-P1-2026-000123</span></div>
+      </div>
+
+      <div class="trophy">
+      <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CML award cup" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block">
+        <defs>
+          <linearGradient id="trophy-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fde08a"/>
+            <stop offset=".5" stop-color="#f4c451"/>
+            <stop offset="1" stop-color="#c8912e"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 20 C4 20 4 46 21 49" fill="none" stroke="url(#trophy-gold)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M80 20 C96 20 96 46 79 49" fill="none" stroke="url(#trophy-gold)" stroke-width="5" stroke-linecap="round"/>
+        <rect x="17" y="10" width="66" height="9" rx="4.5" fill="url(#trophy-gold)"/>
+        <path d="M22 17 H78 C78 47 66 61 50 61 C34 61 22 47 22 17 Z" fill="url(#trophy-gold)"/>
+        <text x="50" y="42" text-anchor="middle" font-family="Space Grotesk, Inter, system-ui, sans-serif" font-weight="700" font-size="15" fill="#241a05" letter-spacing="0.5">CML</text>
+        <rect x="46" y="59" width="8" height="17" fill="url(#trophy-gold)"/>
+        <rect x="35" y="76" width="30" height="7" rx="2" fill="url(#trophy-gold)"/>
+        <rect x="28" y="83" width="44" height="7" rx="2" fill="url(#trophy-gold)"/>
+      </svg>
+      </div>
+
+      <div class="kicker"><i class="dot"></i><span id="o-kicker">Phase 1 Passed</span></div>
+      <h1 id="o-h1">Phase 1 Certificate</h1>
+      <p class="lead" id="o-lead">This certificate is awarded to</p>
+      <div class="name" id="o-name">Abdirahman Mohamed</div>
+      <p class="state" id="o-state">has successfully passed Phase 1 of the ElectraPips Evaluation with an account size of</p>
+      <div class="amount" id="o-amount">$100,000</div>
+
+      <div class="chips">
+        <div class="chip" id="o-chip1"><small>Program</small><b><i class="dot" id="o-dot"></i><span id="o-program">2-Step Evaluation</span></b></div>
+        <div class="chip"><small id="o-chip2-label">Profit target</small><b><span id="o-chip2-value">8%</span></b></div>
+        <div class="chip gold" id="o-chip3" hidden><small id="o-chip3-label">Award level</small><b><span id="o-chip3-value">CML</span></b></div>
+      </div>
+
+      <div class="foot">
+        <div class="sig">
+          <img class="sig-img" src="assets/signature.png" alt="Authorized signature">
+          <div class="line"></div>
+          <strong id="o-signer">ElectraPips Management</strong>
+          <span id="o-title">Authorized signatory</span>
+        </div>
+
+        <div class="sealrow">
+        <svg class="laurel left" viewBox="0 0 60 120" aria-hidden="true">
+          <g fill="none" stroke="var(--gold,#f4c451)" stroke-width="3" stroke-linecap="round">
+            <path d="M45 10 C20 20 12 45 18 70 C22 88 34 102 50 112"/>
+            <path d="M32 22 L18 16 M30 34 L14 30 M30 46 L12 45 M31 58 L14 60 M34 70 L18 75 M39 82 L25 89 M44 93 L32 102"/>
+          </g>
+        </svg>
+        <div class="sealwrap">
+        <svg class="seal" viewBox="0 0 120 120" role="img" aria-label="ElectraPips seal">
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#2f7bff"/>
+              <stop offset="1" stop-color="#0ea5e9"/>
+            </linearGradient>
+            <linearGradient id="sg-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f4c451"/>
+              <stop offset="1" stop-color="#c8912e"/>
+            </linearGradient>
+            <path id="ring" d="M13,60 a47,47 0 1,1 94,0 a47,47 0 1,1 -94,0"/>
+          </defs>
+          <circle cx="60" cy="60" r="57" fill="#0a1120" stroke="url(#sg)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="40" fill="none" stroke="url(#sg)" stroke-width="1" opacity=".6"/>
+          <text font-family="Space Grotesk, Inter, system-ui, sans-serif" font-size="8" font-weight="600" fill="#a8b4c8">
+            <textPath href="#ring" textLength="288" lengthAdjust="spacing" id="o-sealtext">PHASE 1 PASSED • ELECTRAPIPS • </textPath>
+          </text>
+        </svg>
+        <div class="sealcore"></div>
+        </div>
+        <svg class="laurel right" viewBox="0 0 60 120" aria-hidden="true">
+          <g fill="none" stroke="var(--gold,#f4c451)" stroke-width="3" stroke-linecap="round">
+            <path d="M45 10 C20 20 12 45 18 70 C22 88 34 102 50 112"/>
+            <path d="M32 22 L18 16 M30 34 L14 30 M30 46 L12 45 M31 58 L14 60 M34 70 L18 75 M39 82 L25 89 M44 93 L32 102"/>
+          </g>
+        </svg>
+        </div>
+
+        <div class="issued">
+          <span>Date issued</span>
+          <strong id="o-date">21 September 2026</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>window.CERT_DEFAULT_TYPE = "funded";</script>
+<script src="js/script.js"></script>
+</body>
+</html>

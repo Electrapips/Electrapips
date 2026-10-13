@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ElectraPips — Challenge Passed</title>
+</head>
+<body style="margin:0;padding:0;background:#050810;font-family:Inter,Arial,sans-serif;color:#ffffff;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#050810;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#0b1326;border:1px solid #1b2a4a;border-radius:20px;">
+          <tr>
+            <td style="padding:32px 32px 8px;">
+              <img src="{{logo_url}}" alt="ElectraPips" width="48" style="display:block;margin-bottom:8px;">
+              <div style="font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#5aa2ff;font-weight:600;">Challenge Passed</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 32px 0;">
+              <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;color:#ffffff;">Congratulations, {{trader_name}}!</h1>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#a8b4c8;">
+                You have successfully passed your <strong style="color:#ffffff;">{{program_label}}</strong> challenge
+                with an account size of <strong style="color:#ffffff;">{{account_size}}</strong>.
+              </p>
+              {{#if is_performance}}
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#a8b4c8;">
+                For outstanding trading performance, you have been awarded
+                <strong style="color:#f4c451;">{{award_level}}</strong> status in the ElectraPips Performance Program.
+                Your certificate is attached below.
+              </p>
+              {{/if}}
+              {{#unless is_performance}}
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#a8b4c8;">
+                Your certificate is attached to this email.
+              </p>
+              {{/unless}}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#2f7bff,#2563eb);border-radius:999px;">
+                    <a href="{{certificate_url}}" style="display:inline-block;padding:12px 24px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;">View your certificate</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:24px 32px 32px;">
+              <p style="margin:0 0 6px;font-size:13px;line-height:1.6;color:#64748b;">Certificate No. {{certificate_number}} &middot; Issued {{date_issued}}</p>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">Luqman, CEO and Founder — ElectraPips</p>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:16px 0 0;font-size:12px;color:#475569;">ElectraPips is a simulated trading platform. Simulated accounts only; no real funds are involved.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
