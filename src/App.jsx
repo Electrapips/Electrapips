@@ -274,17 +274,13 @@ class EPErrorBoundary extends React.Component{
  }
 }
 export default function App(){
- const [ready,setReady]=useState(false);
+ const [,setVer]=useState(0);
  useEffect(()=>{
-  const timeout=new Promise((res)=>setTimeout(()=>res(null),4000));
-  Promise.race([loadSiteData(),timeout]).then(d=>{if(d)applySiteData(d);setReady(true)}).catch(e=>{console.error("Supabase load failed, using built-in fallback data:",e);setReady(true)});
+   let live=true;
+   // Site renders immediately with built-in data; Supabase data is applied in the background
+   loadSiteData().then(d=>{if(!live)return;applySiteData(d);setVer(v=>v+1)}).catch(e=>console.error("Supabase load failed, using built-in data:",e));
+   return()=>{live=false};
  },[]);
- if(!ready) return <div style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"#05070b",color:"#fff",fontFamily:"Inter,sans-serif"}}>
-  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
-   <div style={{width:34,height:34,border:"3px solid rgba(96,165,250,.25)",borderTopColor:"#2563eb",borderRadius:"50%",animation:"ep-spin 0.8s linear infinite"}}/>
-   <style>{"@keyframes ep-spin{to{transform:rotate(360deg)}}"}</style>
-   <span style={{fontSize:13,color:"#94a3b8"}}>Loading ElectraPips…</span>
-  </div></div>;
  return <EPErrorBoundary><HashRouter><Routes>
   <Route path="/portal/*" element={<PortalSite/>}/>
   <Route path="/*" element={<PublicSite/>}/>
