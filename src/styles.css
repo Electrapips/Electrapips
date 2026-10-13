@@ -1308,7 +1308,6 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .nav-links .dd-menu{display:none}
   .nav-links .dd.open .dd-menu{display:grid!important;position:static!important;transform:none!important;opacity:1!important;visibility:visible!important;box-shadow:none!important;background:#0a1120}
   .m-only{display:flex}
-  .m-login{margin-top:18px;justify-content:center;border-radius:12px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff!important;font-weight:600;text-align:center}
 }
 
 /* ===== Trader Portal: mobile layout (desktop unchanged) ===== */
