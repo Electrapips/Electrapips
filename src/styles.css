@@ -1298,7 +1298,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   /* header: hide "Start Challenge", show "Login" next to the menu button */
   .nav .actions .btn-primary{display:none!important}
   .nav .actions .login{display:none!important}
-  .m-login{margin:0 0 14px;justify-content:center;min-height:48px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff!important;font-weight:600;text-align:center}
+  .m-login{margin:18px 0 0;justify-content:center;min-height:48px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff!important;font-weight:600;text-align:center}
   .nav .actions{gap:10px}
   .mobile-menu{width:44px;height:44px;display:grid;place-items:center;padding:0;font-size:20px;border-radius:12px}
   /* menu: full-screen panel below the header, solid background, no overlap */
