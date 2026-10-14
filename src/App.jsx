@@ -434,7 +434,7 @@ const CERT_DEFS={
  "Phase 1 Passed":{badge:"PHASE 1 PASSED",title:"Phase 1 Certificate",lead:"has successfully passed Phase 1 of the ElectraPips Evaluation with an account size of",accent:"#2f7bff"},
  "Phase 2 Passed":{badge:"PHASE 2 PASSED",title:"Phase 2 Certificate",lead:"has successfully passed Phase 2 of the ElectraPips Evaluation with an account size of",accent:"#2f7bff"},
  "Challenge Passed":{badge:"CHALLENGE PASSED",title:"Challenge Certificate",lead:"has successfully completed the ElectraPips Challenge with an account size of",accent:"#4ade80"},
- "Funded Account":{badge:"PERFORMANCE ACCOUNT",title:"Funded Account Certificate",lead:"has been awarded an ElectraPips Performance Account with an account size of",accent:"#f5a524"},
+ "Funded Account":{badge:"PERFORMANCE ACCOUNT",title:"Performance Trader Certificate",lead:"has been awarded an ElectraPips Performance Account with an account size of",accent:"#f5a524"},
  "First Payout":{badge:"PAYOUT ISSUED",title:"Payout Certificate",lead:"has received a payout from their ElectraPips trading account in the amount of",accent:"#38bdf8"}};
 function CertDoc({c}){const d=CERT_DEFS[c.type]||CERT_DEFS["Phase 1 Passed"];
  const boxes=c.type==="First Payout"?[["Program",c.program],["Payout No.",c.payoutNo]]
