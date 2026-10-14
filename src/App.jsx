@@ -321,7 +321,7 @@ let SIZES={"2-Step Challenge":["$2.5K","$5K","$10K","$25K","$50K","$100K"],"1-St
 const vars=o=>({"--pa":o.pa,"--pa-soft":o.soft,"--pa-dark":o.dark,"--pa-line":o.line});
 const SPRINT={badge:"New",tag:"Fast Track. Two Phases.",desc:"A faster two-phase evaluation with an equal profit target on both phases, no minimum trading days, and weekly payouts — built on the same trusted rules as our Classic 2-Step Challenge.",
  phases:[{n:1,t:"Phase 1",b:"EVALUATION",d:"Target: 6% profit"},{n:2,t:"Phase 2",b:"EVALUATION",d:"Target: 6% profit"}],
- d:"3%",m:"6%",l:"1:50",t:"6% / 6%",x:"Unlimited period · 0 minimum trading days",sizes:["$10K"],prices:{"$10K":"$45"}};
+ d:"3%",m:"6%",l:"1:50",t:"6% / 6%",x:"Unlimited period · 0 minimum trading days",sizes:["$25K"],prices:{"$25K":"$105"}};
 const SPRINT_CHECKS=["Weekend Holding Allowed","News Trading Allowed","0 Minimum Trading Days","No Stop Loss Required","Static Drawdown","Weekly Payouts"];
 const refundNote=(n)=>(n==="2-Step Challenge"||n==="1-Step Challenge")?"2-Step and 1-Step fees are refundable after 3 payouts. ":"Fees for this program are non-refundable once purchased. ";
 function PlanPicker(){
