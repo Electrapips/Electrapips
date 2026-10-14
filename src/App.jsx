@@ -253,7 +253,7 @@ function Signup(){const [step,setStep]=useState(1);const [show,setShow]=useState
 function Start(){return <><PageHero eyebrow="START YOUR JOURNEY" title="Choose your program." text="Select the ElectraPips program that fits your trading approach."/><section><div className="container"><div className="abt-progs">{cmp.map(c=>{const f=INFO[c.n],I=f.icon,first=Object.values(PRICES[c.n])[0];return <Link key={c.n} to="/challenges" className="abt-prog" style={vars(f)}><span className="abt-ico"><I size={22}/></span><h3>{c.n}</h3><span className="sz">{c.s}</span><small>{f.badge} · From <b>{first}</b>{c.n==="Pay After Pass"?" entry":""}</small><em>Choose program <ArrowRight size={14}/></em></Link>})}</div></div></section><Guarantees/></>}
 
 function PublicSite(){return <Layout><Routes>
-  <Route path="/" element={<Home/>}/><Route path="challenges" element={<Challenges/>}/><Route path="how-it-works" element={<How/>}/>
+  <Route path="/" element={<Home/>}/><Route path="challenges" element={<Challenges/>}/><Route path="support" element={<Support/>}/><Route path="how-it-works" element={<How/>}/>
   <Route path="leaderboard" element={<Leaderboard/>}/><Route path="affiliate" element={<Affiliate/>}/><Route path="about" element={<About/>}/>
   <Route path="faq" element={<FAQ/>}/><Route path="contact" element={<Contact/>}/><Route path="legal" element={<Legal/>}/><Route path="legal/:section" element={<Legal/>}/><Route path="login" element={<Login/>}/><Route path="signup" element={<Signup/>}/><Route path="start-challenge" element={<Start/>}/>
   <Route path="tools/risk-calculator" element={<RiskCalc/>}/><Route path="tools/position-size-calculator" element={<PositionCalc/>}/><Route path="tools/pip-calculator" element={<PipCalc/>}/><Route path="tools/trading-journal" element={<TradingJournal/>}/>
@@ -400,6 +400,69 @@ function Global(){const pts=[[Globe,"Accessible by design","Built to be accessib
  <svg viewBox="0 0 400 400" className="globe" aria-hidden="true"><defs><radialGradient id="gl" cx=".35" cy=".3"><stop offset="0" stopColor="#2f7bff" stopOpacity=".45"/><stop offset="1" stopColor="#0a1230" stopOpacity=".2"/></radialGradient></defs><circle cx="200" cy="200" r="170" fill="url(#gl)" stroke="#2f5bd0" strokeOpacity=".6"/>{[150,105,55].map(r=><ellipse key={r} cx="200" cy="200" rx={r} ry="170" fill="none" stroke="#5aa2ff" strokeOpacity=".28"/>)}{[-110,-55,0,55,110].map(y=><ellipse key={y} cx="200" cy={200+y} rx={Math.sqrt(170*170-y*y)} ry="14" fill="none" stroke="#5aa2ff" strokeOpacity=".22"/>)}{[[150,120],[240,150],[120,230],[280,260],[200,320],[210,95],[300,190]].map(([x,y],i)=><circle key={i} className="gd" style={{animationDelay:i*.35+"s"}} cx={x} cy={y} r="4.5" fill="#38bdf8"/>)}</svg></div></section>}
 
 const LIVECHAT_URL=""; // optional: your Tawk.to / Crisp chat link — opens instead of the panel
+function Support(){
+ const [uid,setUid]=useState(null),[ready,setReady]=useState(false);
+ const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]);
+ const [mode,setMode]=useState("list"),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const [form,setForm]=useState({name:"",email:"",topic:"Programs & pricing",body:""});
+ const TOPICS=["Programs & pricing","Payouts","Trading rules","Refunds","Account / technical","Other"];
+ useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true);if(data?.user?.email)setForm(f=>({...f,email:data.user.email}))})},[]);
+ useEffect(()=>{if(!uid)return;let live=true;const load=async()=>{const {data}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(100);if(live&&data)setConvs(data)};load();const t=setInterval(load,5000);return()=>{live=false;clearInterval(t)}},[uid]);
+ useEffect(()=>{if(!active)return;let live=true;const load=async()=>{const {data}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",active).order("created_at",{ascending:true}).limit(300);if(live&&data)setMsgs(data)};load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[active]);
+ const openConv=(id)=>{setActive(id);setMode("thread");setErr("")};
+ const startNew=async(e)=>{e.preventDefault();setErr("");
+   if(!form.name.trim()||!form.email.trim()||!form.body.trim()){setErr("Please fill in your name, email and message.");return}
+   if(!/^\S+@\S+\.\S+$/.test(form.email.trim())){setErr("Please enter a valid email address.");return}
+   setBusy(true);
+   const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:form.topic,status:"active",contact_name:form.name.trim(),contact_email:form.email.trim()}).select("id").single();
+   if(ce){setBusy(false);setErr("Could not start the chat. Please try again.");return}
+   const {error:me}=await supabase.from("support_messages").insert({conversation_id:c.id,sender_id:uid,sender_type:"trader",body:form.body.trim()});
+   setBusy(false); if(me){setErr("Message could not be sent.");return}
+   setForm(f=>({...f,body:""})); setConvs(v=>[{id:c.id,subject:form.topic,status:"active",last_message_at:new Date().toISOString(),created_at:new Date().toISOString()},...v]);
+   openConv(c.id)};
+ const sendMsg=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!active)return;setBusy(true);setErr("");
+   const {error}=await supabase.from("support_messages").insert({conversation_id:active,sender_id:uid,sender_type:"trader",body:v});
+   setBusy(false); if(error){setErr("Message could not be sent.");return}
+   setText(""); const {data}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",active).order("created_at",{ascending:true}).limit(300); if(data)setMsgs(data)};
+ const fmt=(iso)=>new Date(iso).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+ const current=convs.find(c=>c.id===active);
+ return <>
+  <PageHero eyebrow="SUPPORT" title="How can we help?" text="Chat with the ElectraPips support team. Your conversations are saved here."/>
+  <section><div className="container">
+   {!ready?null:!uid?<div className="sp-signin pt-card"><h3>Sign in to chat with our team</h3><p>Your conversations are saved to your account, so you can return to them at any time.</p><div className="sp-row"><Link className="btn btn-primary" to="/login">Sign in <ArrowRight size={15}/></Link><Link className="btn btn-ghost" to="/signup">Create account</Link></div></div>
+   :<div className="sp-layout">
+     <aside className="sp-side pt-card">
+       <button className="btn btn-primary sp-new" onClick={()=>{setMode("new");setActive(null);setErr("")}}>+ New chat</button>
+       <div className="sp-list-title">Your conversations</div>
+       {convs.length===0&&<p className="sp-empty">No conversations yet.</p>}
+       {convs.map(c=><button key={c.id} className={"sp-item"+(active===c.id?" on":"")} onClick={()=>openConv(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"sp-st "+c.status}>{c.status}</i></button>)}
+     </aside>
+     <div className="sp-main pt-card">
+       {mode==="new"&&<form className="sp-form" onSubmit={startNew}>
+         <h3>Start a new chat</h3>
+         <div className="sp-grid2">
+           <label className="pt-field">Full name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Your name"/></label>
+           <label className="pt-field">Email<input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="you@example.com"/></label>
+         </div>
+         <label className="pt-field">Topic<select value={form.topic} onChange={e=>setForm({...form,topic:e.target.value})}>{TOPICS.map(t=><option key={t}>{t}</option>)}</select></label>
+         <label className="pt-field">Message<textarea rows={5} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Describe how we can help…" maxLength={2000}/></label>
+         {err&&<p className="sp-err">{err}</p>}
+         <button className="btn btn-primary" disabled={busy}>{busy?"Sending…":"Start chat"}</button>
+       </form>}
+       {mode==="thread"&&current&&<>
+         <div className="sp-thead"><div><h3>{current.subject||"Support"}</h3><span className={"sp-st "+current.status}>{current.status}</span></div></div>
+         <div className="sp-msgs">{msgs.length===0&&<p className="sp-empty">Send a message to start the conversation.</p>}
+           {msgs.map(m=><div key={m.id} className={"sp-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}<p>{m.body}</p><time>{fmt(m.created_at)}</time></div>)}
+         </div>
+         {err&&<p className="sp-err">{err}</p>}
+         <form className="sp-compose" onSubmit={sendMsg}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button className="btn btn-primary" disabled={busy||!text.trim()}>Send</button></form>
+       </>}
+       {mode==="list"&&<div className="sp-welcome"><h3>Select a conversation</h3><p>Pick one from the list, or start a new chat.</p><button className="btn btn-primary" onClick={()=>{setMode("new");setActive(null)}}>+ New chat</button></div>}
+     </div>
+   </div>}
+  </div></section>
+ </>}
+
 function ChatWidget(){const [open,setOpen]=useState(false),[tip,setTip]=useState(false),loc=useLocation();
  const [uid,setUid]=useState(null),[conv,setConv]=useState(null),[msgs,setMsgs]=useState([]),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const endRef=useRef(null);
@@ -415,7 +478,7 @@ function ChatWidget(){const [open,setOpen]=useState(false),[tip,setTip]=useState
  useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"nearest"})},[msgs,open]);
  const send=async(body)=>{const v=(body||"").trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
    try{let id=conv;
-     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"open"}).select("id").single();if(ce)throw ce;id=c.id;setConv(id)}
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setConv(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
      setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);if(m)setMsgs(m);
    }catch(e){setErr("Message could not be sent. Please try again.")}
@@ -438,7 +501,7 @@ function ChatWidget(){const [open,setOpen]=useState(false),[tip,setTip]=useState
     </>}
    </div>
    {uid&&<form className="chat-input" onSubmit={(e)=>{e.preventDefault();send(text)}}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button type="submit" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>}
-   <div className="chat-foot"><a className="chat-act" href={tg} target="_blank" rel="noreferrer"><Send size={16}/>Telegram</a><a className="chat-act alt" href={wa} target="_blank" rel="noreferrer"><MessageCircle size={16}/>WhatsApp</a><Link className="chat-link" to="/contact">Or send us a message <ArrowRight size={14}/></Link></div></div>}
+   <div className="chat-foot"><a className="chat-act" href={tg} target="_blank" rel="noreferrer"><Send size={16}/>Telegram</a><a className="chat-act alt" href={wa} target="_blank" rel="noreferrer"><MessageCircle size={16}/>WhatsApp</a><Link className="chat-link" to="/support">Open full support chat <ArrowRight size={14}/></Link><Link className="chat-link" to="/contact">Or send us a message <ArrowRight size={14}/></Link></div></div>}
   {tip&&!open&&<div className="chat-tip"><button onClick={()=>setTip(false)} aria-label="Dismiss"><X size={12}/></button>Need help? Chat with us</div>}
   <button className={"chat-btn"+(open?" on":"")} aria-label="Open support chat" onClick={toggle}>{open?<X size={26}/>:<MessageCircle size={28}/>}</button></div>}
 
