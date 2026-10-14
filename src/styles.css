@@ -1386,3 +1386,20 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
   .cc-cat{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){.cc-banner,.cc-overlay,.cc-modal{animation:none}}
+
+/* ===== Support chat: live conversation (same look as the existing widget) ===== */
+.chat-body{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.chat-body .msg{max-width:85%;align-self:flex-start}
+.chat-body .msg.me{align-self:flex-end;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;border-color:transparent}
+.chat-body .msg.team small{display:block;font:600 10px var(--mono);letter-spacing:.06em;color:#5aa2ff;margin-bottom:3px;text-transform:uppercase}
+.chat-body .chips{display:flex;flex-wrap:wrap;gap:8px}
+.chat-body .chip-q{cursor:pointer;background:none;font:inherit}
+.chat-body .chip-q:disabled{opacity:.5;cursor:default}
+.chat-input{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #16223c}
+.chat-input input{flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:inherit;outline:none}
+.chat-input input:focus{border-color:var(--primary)}
+.chat-input button{width:44px;height:44px;flex:none;border-radius:12px;border:0;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;display:grid;place-items:center;cursor:pointer}
+.chat-input button:disabled{opacity:.45;cursor:not-allowed}
+.chat-err{color:#fb7185;font-size:13px}
+.chat-signin{font-size:13px;color:#94a3b8}
+.chat-signin a{color:#5aa2ff;font-weight:600}
