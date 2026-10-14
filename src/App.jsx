@@ -1,6 +1,7 @@
 
 import React,{useEffect,useState,useRef} from "react";
 import { loadSiteData } from "./lib/loadSiteData";
+import CookieConsent from "./CookieConsent.jsx";
 import { supabase } from "./lib/supabaseClient";
 import { loadPortalData, buildView, EMPTY_VIEW } from "./lib/portalData";
 import {ShieldCheck,Layers,Target,Globe,Compass,TrendingUp,Zap,Check,X,Wallet,Clock,Repeat,ArrowRight,CreditCard,Rocket,Star,Info,RotateCcw,ChevronDown,MessageCircle,User,Search,Mail,Lock,Eye,EyeOff,Send,Trophy,UserPlus,Share2,LifeBuoy,Users,LayoutDashboard,Award,Gift,Copy,ArrowDownToLine,ArrowUpRight,ArrowDownRight,CheckCircle2,XCircle,Timer,Tag,LogOut,Bell,Download,QrCode,Percent,FileText,BarChart3,Settings,Upload,Phone,Globe2,Smartphone} from "lucide-react";
@@ -56,7 +57,7 @@ function Layout({children}) {
     </div>
     <div className="site-topbar-spacer"/>
     {children}
-    <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span></div></div></footer>
+    <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span><button type="button" className="cc-footer-btn" onClick={()=>window.dispatchEvent(new Event("ep:cookie-settings"))}>Cookie Settings</button></div></div></footer>
     <ChatWidget/>
   </>;
 }
@@ -284,7 +285,7 @@ export default function App(){
  return <EPErrorBoundary><HashRouter><Routes>
   <Route path="/portal/*" element={<PortalSite/>}/>
   <Route path="/*" element={<PublicSite/>}/>
- </Routes></HashRouter></EPErrorBoundary>
+ </Routes></HashRouter><CookieConsent/></EPErrorBoundary>
 }
 
 function applySiteData(d){
