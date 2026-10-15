@@ -58,6 +58,7 @@ function Layout({children}) {
     <div className="site-topbar-spacer"/>
     {children}
     <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span><button type="button" className="cc-footer-btn" onClick={()=>window.dispatchEvent(new Event("ep:cookie-settings"))}>Cookie Settings</button></div></div></footer>
+    <Link className="chat-fab" to="/support" aria-label="Open support chat" title="Support chat"><MessageCircle size={26}/></Link>
   </>;
 }
 
