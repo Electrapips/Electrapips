@@ -1458,3 +1458,47 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .cfab-form input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,123,255,.2)}
 .cfab-alt{margin:14px 0 0;color:#94a3b8;font-size:13px;text-align:center}
 .cfab-alt a{color:#5aa2ff;font-weight:600}
+
+/* ===== Floating support panel (opens in place) ===== */
+.chat-fab{transition:transform .25s ease,box-shadow .25s ease,background .25s ease}
+.chat-fab.on{background:#0b1326;border:1px solid #1b2a4a;animation:none}
+.fc-panel{position:fixed;right:22px;bottom:98px;z-index:95;width:370px;max-width:calc(100vw - 28px);height:min(600px,calc(100vh - 130px));display:flex;flex-direction:column;background:linear-gradient(180deg,#0b1326,#080e1c);border:1px solid #1b2a4a;border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.6);overflow:hidden;animation:fcIn .3s cubic-bezier(.2,.7,.2,1) both}
+.fc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff}
+.fc-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.fc-brand img{width:40px;height:40px;border-radius:12px;background:#fff;padding:4px;flex:none}
+.fc-brand b{display:block;font:700 15px var(--display)}
+.fc-brand small{display:block;font-size:12px;opacity:.85}
+.fc-x{width:36px;height:36px;border-radius:10px;border:0;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.fc-body{flex:1;min-height:0;overflow-y:auto;padding:16px}
+.fc-hello{padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(47,123,255,.2),rgba(56,189,248,.06));border:1px solid rgba(47,123,255,.25);margin-bottom:14px}
+.fc-hello span{font:600 12px var(--mono);color:#5aa2ff;letter-spacing:.06em;text-transform:uppercase}
+.fc-hello h3{font:700 19px var(--display);color:#fff;margin:6px 0 0}
+.fc-home{display:grid;gap:10px}
+.fc-card{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:14px 16px;border-radius:14px;border:1px solid #16223c;background:#0a1120;color:#e2e8f0;font:600 14px var(--font);cursor:pointer;transition:all .2s ease;text-align:left}
+.fc-card span{display:flex;align-items:center;gap:10px}
+.fc-card:hover{border-color:rgba(47,123,255,.5);background:#0f1b38;transform:translateX(2px)}
+.fc-card svg:last-child{color:#5aa2ff}
+.fc-login{display:grid;gap:12px}
+.fc-login h3{font:700 18px var(--display);color:#fff;margin:0}
+.fc-login p{margin:0;color:#94a3b8;font-size:13px}
+.fc-login label{display:grid;gap:6px;font:600 13px var(--font);color:#cbd5e1}
+.fc-login input,.fc-compose input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:inherit;outline:none}
+.fc-login input:focus,.fc-compose input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,123,255,.2)}
+.fc-alt{text-align:center}
+.fc-alt a{color:#5aa2ff;font-weight:600}
+.fc-err{color:#fb7185;font-size:13px;margin:0}
+.fc-thread{display:flex;flex-direction:column;height:100%;min-height:360px}
+.fc-msgs{flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:4px 2px 8px}
+.fc-empty{color:#94a3b8;font-size:14px;margin:auto;text-align:center}
+.fc-msg{max-width:82%;padding:10px 13px;border-radius:14px;background:#0f1b38;border:1px solid #16223c;color:#e2e8f0;font-size:14px;line-height:1.5;white-space:pre-wrap;align-self:flex-start}
+.fc-msg small{display:block;font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#5aa2ff;margin-bottom:3px}
+.fc-msg.me{align-self:flex-end;background:linear-gradient(135deg,#2563eb,#38bdf8);border-color:transparent;color:#fff}
+.fc-compose{display:flex;gap:8px;padding-top:10px;border-top:1px solid #16223c;margin-top:8px}
+.fc-compose button{width:44px;height:44px;flex:none;border-radius:12px;border:0;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;display:grid;place-items:center;cursor:pointer}
+.fc-compose button:disabled{opacity:.45;cursor:not-allowed}
+.fc-tabs{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #16223c;background:#070c18}
+.fc-tabs button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border:0;background:none;color:#64748b;font:600 12px var(--font);cursor:pointer}
+.fc-tabs button.on{color:#5aa2ff}
+.fc-tabs button:hover{color:#e2e8f0}
+@keyframes fcIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:620px){.fc-panel{right:10px;bottom:84px;width:calc(100vw - 20px);height:min(560px,calc(100vh - 110px))}}

@@ -26,29 +26,69 @@ const programs = [
   {name:"Direct", tag:"04 / DIRECT", size:"$5K — $100K", bullets:["No profit target","3.5% daily loss","7% max drawdown","1:50 leverage","Unlimited period"]}
 ];
 
-function SupportLoginPanel({onClose}){
- const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
- const go=async(e)=>{e.preventDefault();setErr("");setBusy(true);
-   const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pw});
-   setBusy(false);
-   if(error){setErr(error.message);return}
-   onClose(); window.location.hash="#/support"};
- return <div className="cc-overlay" onClick={onClose}><div className="cc-modal cfab-login" role="dialog" aria-modal="true" aria-label="Sign in to chat" onClick={e=>e.stopPropagation()}>
-  <div className="cc-modal-head"><h3>Sign in to chat with us</h3><button type="button" className="cc-close" aria-label="Close" onClick={onClose}>×</button></div>
-  <p className="cc-modal-intro">Sign in to start or continue a conversation with the ElectraPips support team.</p>
-  <form onSubmit={go} className="cfab-form">
-   <label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></label>
-   <label>Password<input type="password" autoComplete="current-password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Your password" required/></label>
-   {err&&<p className="sp-err">{err}</p>}
-   <button className="btn btn-primary" style={{width:"100%"}} disabled={busy||!email||!pw}>{busy?"Signing in…":"Sign in & open chat"}</button>
-  </form>
-  <p className="cfab-alt">No account? <a href="#/signup" onClick={onClose}>Create one</a></p>
- </div></div>
-}
+function FloatingChat(){
+ const [open,setOpen]=useState(false),[tab,setTab]=useState("home"),[uid,setUid]=useState(null),[ready,setReady]=useState(false);
+ const [convId,setConvId]=useState(null),[msgs,setMsgs]=useState([]),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[lbusy,setLbusy]=useState(false),[lerr,setLerr]=useState("");
+ const endRef=useRef(null);
+ useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
+ useEffect(()=>{if(!open||!uid)return;let live=true;
+   const load=async()=>{const {data:c}=await supabase.from("support_conversations").select("id").eq("trader_id",uid).order("created_at",{ascending:false}).limit(1).maybeSingle();
+     if(!live)return;setConvId(c?c.id:null);
+     if(c){const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",c.id).order("created_at",{ascending:true}).limit(200);if(live&&m)setMsgs(m)}};
+   load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid]);
+ useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,tab]);
+ const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
+   try{let id=convId;
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setConvId(id)}
+     const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
+     setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);if(m)setMsgs(m);
+   }catch(e2){setErr("Message could not be sent. Please try again.")}
+   setBusy(false)};
+ const login=async(e)=>{e.preventDefault();setLerr("");setLbusy(true);const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pw});setLbusy(false);if(error){setLerr(error.message);return}setPw("");setTab("messages")};
+ const go=(to)=>{setOpen(false);window.location.hash=to};
+ return <>
+  {open&&<div className="fc-panel" role="dialog" aria-label="ElectraPips support">
+   <div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips Support</b><small>We usually reply in a few minutes</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>
+   <div className="fc-body">
+    {tab==="home"&&<div className="fc-home">
+      <div className="fc-hello"><span>Welcome 👋</span><h3>How can we help you today?</h3></div>
+      <button className="fc-card" onClick={()=>setTab("messages")}><span><Send size={16}/> Send us a message</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> Frequently asked questions</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>go("#/challenges")}><span><Layers size={16}/> Programs &amp; pricing</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>go("#/contact")}><span><Mail size={16}/> Contact page</span><ArrowRight size={16}/></button>
+    </div>}
+    {tab==="messages"&&(!ready?null:!uid?<form className="fc-login" onSubmit={login}>
+      <h3>Sign in to chat</h3><p>Your conversations are saved to your account.</p>
+      <label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
+      <label>Password<input type="password" autoComplete="current-password" value={pw} onChange={e=>setPw(e.target.value)} required/></label>
+      {lerr&&<p className="fc-err">{lerr}</p>}
+      <button className="btn btn-primary" style={{width:"100%"}} disabled={lbusy||!email||!pw}>{lbusy?"Signing in…":"Sign in"}</button>
+      <p className="fc-alt">No account? <a href="#/signup" onClick={()=>setOpen(false)}>Create one</a></p>
+    </form>:<div className="fc-thread">
+      <div className="fc-msgs">{msgs.length===0&&<p className="fc-empty">Hi 👋 Send us a message and our team will reply here.</p>}
+        {msgs.map(m=><div key={m.id} className={"fc-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}{m.body}</div>)}
+        <div ref={endRef}/></div>
+      {err&&<p className="fc-err">{err}</p>}
+      <form className="fc-compose" onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>
+    </div>)}
+    {tab==="help"&&<div className="fc-home">
+      <div className="fc-hello"><span>Help</span><h3>Quick links</h3></div>
+      <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> FAQ</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>go("#/legal/refunds")}><span><ShieldCheck size={16}/> Refund policy</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>go("#/legal/terms")}><span><FileText size={16}/> Terms &amp; conditions</span><ArrowRight size={16}/></button>
+    </div>}
+   </div>
+   <nav className="fc-tabs">
+     <button className={tab==="home"?"on":""} onClick={()=>setTab("home")}><Layers size={18}/>Home</button>
+     <button className={tab==="messages"?"on":""} onClick={()=>setTab("messages")}><MessageCircle size={18}/>Messages</button>
+     <button className={tab==="help"?"on":""} onClick={()=>setTab("help")}><Info size={18}/>Help</button>
+   </nav>
+  </div>}
+  <button type="button" className={"chat-fab"+(open?" on":"")} aria-label={open?"Close support chat":"Open support chat"} title="Support chat" onClick={()=>{setOpen(o=>!o);setTab("home")}}>{open?<X size={24}/>:<MessageCircle size={26}/>}</button>
+ </>}
 
 function Layout({children}) {
- const [chatLogin,setChatLogin]=useState(false);
- const openSupport=async()=>{const {data}=await supabase.auth.getUser();if(data&&data.user){window.location.hash="#/support"}else{setChatLogin(true)}};
   const location = useLocation();
   const [dd,setDd]=useState(null);
   const topbarRef=useRef(null);
@@ -80,8 +120,7 @@ function Layout({children}) {
     <div className="site-topbar-spacer"/>
     {children}
     <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span><button type="button" className="cc-footer-btn" onClick={()=>window.dispatchEvent(new Event("ep:cookie-settings"))}>Cookie Settings</button></div></div></footer>
-    <button type="button" className="chat-fab" aria-label="Open support chat" title="Support chat" onClick={openSupport}><MessageCircle size={26}/></button>
-    {chatLogin&&<SupportLoginPanel onClose={()=>setChatLogin(false)}/>}
+    <FloatingChat/>
   </>;
 }
 
