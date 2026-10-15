@@ -26,7 +26,29 @@ const programs = [
   {name:"Direct", tag:"04 / DIRECT", size:"$5K — $100K", bullets:["No profit target","3.5% daily loss","7% max drawdown","1:50 leverage","Unlimited period"]}
 ];
 
+function SupportLoginPanel({onClose}){
+ const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const go=async(e)=>{e.preventDefault();setErr("");setBusy(true);
+   const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pw});
+   setBusy(false);
+   if(error){setErr(error.message);return}
+   onClose(); window.location.hash="#/support"};
+ return <div className="cc-overlay" onClick={onClose}><div className="cc-modal cfab-login" role="dialog" aria-modal="true" aria-label="Sign in to chat" onClick={e=>e.stopPropagation()}>
+  <div className="cc-modal-head"><h3>Sign in to chat with us</h3><button type="button" className="cc-close" aria-label="Close" onClick={onClose}>×</button></div>
+  <p className="cc-modal-intro">Sign in to start or continue a conversation with the ElectraPips support team.</p>
+  <form onSubmit={go} className="cfab-form">
+   <label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></label>
+   <label>Password<input type="password" autoComplete="current-password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="Your password" required/></label>
+   {err&&<p className="sp-err">{err}</p>}
+   <button className="btn btn-primary" style={{width:"100%"}} disabled={busy||!email||!pw}>{busy?"Signing in…":"Sign in & open chat"}</button>
+  </form>
+  <p className="cfab-alt">No account? <a href="#/signup" onClick={onClose}>Create one</a></p>
+ </div></div>
+}
+
 function Layout({children}) {
+ const [chatLogin,setChatLogin]=useState(false);
+ const openSupport=async()=>{const {data}=await supabase.auth.getUser();if(data&&data.user){window.location.hash="#/support"}else{setChatLogin(true)}};
   const location = useLocation();
   const [dd,setDd]=useState(null);
   const topbarRef=useRef(null);
@@ -58,7 +80,8 @@ function Layout({children}) {
     <div className="site-topbar-spacer"/>
     {children}
     <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span><button type="button" className="cc-footer-btn" onClick={()=>window.dispatchEvent(new Event("ep:cookie-settings"))}>Cookie Settings</button></div></div></footer>
-    <Link className="chat-fab" to="/support" aria-label="Open support chat" title="Support chat"><MessageCircle size={26}/></Link>
+    <button type="button" className="chat-fab" aria-label="Open support chat" title="Support chat" onClick={openSupport}><MessageCircle size={26}/></button>
+    {chatLogin&&<SupportLoginPanel onClose={()=>setChatLogin(false)}/>}
   </>;
 }
 
