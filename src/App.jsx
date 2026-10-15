@@ -332,44 +332,42 @@ function ResetPassword(){
 
 function Login(){const [show,setShow]=useState(false);const [em,setEm]=useState("");const [pw,setPw]=useState("");const [err,setErr]=useState("");const [busy,setBusy]=useState(false);const [notice]=useState(()=>{try{if(sessionStorage.getItem("ep_pw_reset")){sessionStorage.removeItem("ep_pw_reset");return "Password updated. Please sign in with your new password."}}catch(e){}return ""});
  const doSignIn=async()=>{setErr("");setBusy(true);const {error}=await supabase.auth.signInWithPassword({email:em,password:pw});setBusy(false);if(error){setErr(error.message);return}window.location.hash="#/portal"};return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>TRADER ACCESS</Eyebrow><h1>Welcome <span className="hl">back.</span></h1><p>Sign in to your trader dashboard.</p><ul>{[[ShieldCheck,"Clear, published rules"],[Layers,"Four program models"],[Wallet,"Straightforward payout terms"]].map(([I,t])=><li key={t}><I/>{t}</li>)}</ul></div><form className="login-card" onSubmit={e=>e.preventDefault()}><h2>Sign in</h2><label>Email<span className="inp"><Mail size={16}/><input type="email" name="ep-login-email" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" value={em} onChange={e=>setEm(e.target.value)}/></span></label><label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} placeholder="••••••••" value={pw} onChange={e=>setPw(e.target.value)}/><button type="button" className="eye" aria-label="Show password" onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>{notice&&<p style={{color:"#4ade80",fontSize:13}}>{notice}</p>}<div style={{textAlign:"right",marginTop:-6}}><button type="button" onClick={()=>{window.location.hash="#/forgot-password"}} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,fontSize:13,cursor:"pointer",padding:0}}>Forgot password?</button></div>{err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}<button type="button" className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!em||!pw} onClick={doSignIn}>{busy?"Signing in…":"Sign in"}</button><p>New to ElectraPips? <Link to="/signup">Create an account</Link></p><p className="auth-note">Demo build — sign-in isn't connected to a real account yet. This button opens the Trader Portal preview.</p></form></div></section>}
-function Signup(){const [step,setStep]=useState(1);const [show,setShow]=useState(false);const [busy,setBusy]=useState(false);const [err,setErr]=useState("");const [done,setDone]=useState("");
- const [d,setD]=useState({name:"",email:"",password:"",country:"",phone:"",agree:false});
- const on=k=>e=>setD({...d,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
- const steps=["Account Details","Contact","Confirm & Finish"];
- const step1ok=d.name&&d.email&&d.password.length>=6;
- const finish=async(e)=>{e.preventDefault();setErr("");setBusy(true);
-   const {data,error}=await supabase.auth.signUp({email:d.email.trim(),password:d.password,options:{data:{full_name:d.name.trim(),phone:d.phone.trim(),country:d.country.trim()}}});
+const COUNTRIES=["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
+function Signup(){
+ const [f,setF]=useState({first:"",last:"",email:"",country:"",password:"",agree:false});
+ const [show,setShow]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState(""),[resent,setResent]=useState("");
+ const on=(k)=>(e)=>setF({...f,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
+ const pwOk=f.password.length>=12;
+ const valid=f.first.trim()&&f.last.trim()&&/^\S+@\S+\.\S+$/.test(f.email.trim())&&f.country&&pwOk&&f.agree;
+ const submit=async(e)=>{e.preventDefault();setErr("");
+   if(!valid){setErr("Please complete every field. Password must be at least 12 characters.");return}
+   setBusy(true);
+   const email=f.email.trim();
+   const {data,error}=await supabase.auth.signUp({email,password:f.password,options:{data:{full_name:(f.first.trim()+" "+f.last.trim()),country:f.country}}});
    setBusy(false);
    if(error){setErr(error.message);return}
    if(data&&data.session){window.location.hash="#/portal";return}
-   setDone("Account created. Check your email to confirm your address, then sign in.");
+   setSent(email);
  };
- return <section className="auth signup"><div className="container auth-grid"><div className="auth-side"><Eyebrow>CREATE ACCOUNT</Eyebrow><h1>Start trading <span className="hl">with us.</span></h1><p>Create your free ElectraPips account and choose a program when you are ready.</p>
-  <ul>{[[ShieldCheck,"Clear, published rules"],[Layers,"Four program models"],[Wallet,"Straightforward payout terms"]].map(([I,t])=><li key={t}><I/>{t}</li>)}</ul></div>
+ const resend=async()=>{setResent("");const {error}=await supabase.auth.resend({type:"signup",email:sent});setResent(error?error.message:"Verification email sent again.")};
+ if(sent)return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>VERIFY YOUR EMAIL</Eyebrow><h1>Almost <span className="hl">there.</span></h1><p>We sent a verification link to your email. Open it to activate your account, then sign in.</p></div>
+  <div className="login-card"><h3>Check your inbox</h3><p style={{color:"#94a3b8"}}>Verification sent to <b style={{color:"#fff"}}>{sent}</b>. Didn't get it? Check spam, or resend below.</p>
+   {resent&&<p style={{color:"#4ade80",fontSize:13}}>{resent}</p>}
+   <button className="btn btn-ghost" style={{width:"100%",marginBottom:10}} onClick={resend}>Resend verification email</button>
+   <Link className="btn btn-primary" to="/login" style={{width:"100%",textAlign:"center"}}>Go to sign in</Link></div></div></section>;
+ return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>CREATE ACCOUNT</Eyebrow><h1>Start trading <span className="hl">with us.</span></h1><p>Create your free ElectraPips account. Your trader dashboard opens as soon as you verify your email.</p></div>
   <div className="login-card signup-card">
-  <div className="wiz-steps compact">{steps.map((s,k)=><div key={s} className={"wiz-step"+(step===k+1?" on":step>k+1?" done":"")}><span>{step>k+1?<Check size={13}/>:k+1}</span>{s}</div>)}</div>
-
-  {done?<div className="pt-notice ok"><CheckCircle2 size={16}/>{done} <Link to="/login" style={{marginLeft:6,color:"#5aa2ff",fontWeight:600}}>Sign in</Link></div>:<>
-  {step===1&&<form onSubmit={e=>{e.preventDefault();step1ok&&setStep(2)}}>
-   <label>Full Name<span className="inp"><User size={16}/><input value={d.name} onChange={on("name")} placeholder="Your full name"/></span></label>
-   <label>Email<span className="inp"><Mail size={16}/><input type="email" value={d.email} onChange={on("email")} placeholder="you@example.com"/></span></label>
-   <label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={d.password} onChange={on("password")} placeholder="At least 6 characters"/><button type="button" className="eye" aria-label="Show password" onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>
-   <button className="btn btn-primary" style={{width:"100%"}} disabled={!step1ok}>Continue <ArrowRight size={15}/></button></form>}
-
-  {step===2&&<div>
-   <label>Country<span className="inp"><Globe size={16}/><input value={d.country} onChange={on("country")} placeholder="Your country"/></span></label>
-   <label>Phone Number<span className="inp"><Phone size={16}/><input value={d.phone} onChange={on("phone")} placeholder="+1 234 567 8900"/></span></label>
-   <div className="signup-btn-row"><button className="btn btn-ghost" onClick={()=>setStep(1)}>Back</button><button className="btn btn-primary" style={{flex:1}} onClick={()=>setStep(3)}>Continue <ArrowRight size={15}/></button></div></div>}
-
-  {step===3&&<form onSubmit={finish}>
-   <div className="signup-summary"><div><span>Name</span><b>{d.name||"—"}</b></div><div><span>Email</span><b>{d.email||"—"}</b></div><div><span>Country</span><b>{d.country||"—"}</b></div></div>
-   <label className="pt-check" style={{margin:"14px 0"}}><input type="checkbox" checked={d.agree} onChange={on("agree")}/>I agree to the <Link to="/legal">Terms</Link> and <Link to="/legal/refunds">Refund Policy</Link>.</label>
-   {err&&<p style={{color:"#fb7185",fontSize:13,marginBottom:10}}>{err}</p>}
-   <div className="signup-btn-row"><button type="button" className="btn btn-ghost" onClick={()=>setStep(2)}>Back</button><button type="submit" className="btn btn-primary" style={{flex:1}} disabled={!d.agree||busy}>{busy?"Creating account…":"Create account"}</button></div>
-  </form>}
-  </>}
-
-  <p>Already have an account? <Link to="/login">Sign in</Link></p>
+   <form onSubmit={submit} className="su-form">
+    <div className="su-row2"><label>First name<input value={f.first} onChange={on("first")} autoComplete="given-name" required/></label><label>Last name<input value={f.last} onChange={on("last")} autoComplete="family-name" required/></label></div>
+    <label>Email<input type="email" value={f.email} onChange={on("email")} autoComplete="email" placeholder="you@example.com" required/></label>
+    <label>Country of residence<select value={f.country} onChange={on("country")} required><option value="">Select your country</option>{COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+    <label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={f.password} onChange={on("password")} autoComplete="new-password" placeholder="At least 12 characters" required/><button type="button" className="eye" aria-label={show?"Hide password":"Show password"} onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>
+    <small className={"su-hint"+(f.password&&!pwOk?" bad":"")}>{pwOk?"Strong enough.":"Use at least 12 characters (letters, numbers and symbols recommended)."}</small>
+    <label className="su-check"><input type="checkbox" checked={f.agree} onChange={on("agree")}/><span>I accept the <Link to="/legal/terms">Terms &amp; Conditions</Link> and the <Link to="/legal/privacy">Privacy Policy</Link>.</span></label>
+    {err&&<p className="sp-err">{err}</p>}
+    <button className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!valid}>{busy?"Creating account…":"Create account"}</button>
+    <p className="su-alt">Already have an account? <Link to="/login">Sign in</Link></p>
+   </form>
   </div></div></section>}
 
 function Start(){return <><PageHero eyebrow="START YOUR JOURNEY" title="Choose your program." text="Select the ElectraPips program that fits your trading approach."/><section><div className="container"><div className="abt-progs">{cmp.map(c=>{const f=INFO[c.n],I=f.icon,first=Object.values(PRICES[c.n])[0];return <Link key={c.n} to="/challenges" className="abt-prog" style={vars(f)}><span className="abt-ico"><I size={22}/></span><h3>{c.n}</h3><span className="sz">{c.s}</span><small>{f.badge} · From <b>{first}</b>{c.n==="Pay After Pass"?" entry":""}</small><em>Choose program <ArrowRight size={14}/></em></Link>})}</div></div></section><Guarantees/></>}
