@@ -398,7 +398,6 @@ function Global(){const pts=[[Globe,"Accessible by design","Built to be accessib
  return <section className="light"><div className="container glb"><div><div className="mono-eye" style={{marginBottom:14}}>GLOBAL ACCESS</div><h2>Built for traders from <span className="hl">around the world.</span></h2><p className="glb-p">Simulated prop trading with clear rules, designed to be accessible to more traders.</p><ul className="glb-list">{pts.map(([I,t,d])=><li key={t}><I/><div><b>{t}</b><span>{d}</span></div></li>)}</ul></div>
  <svg viewBox="0 0 400 400" className="globe" aria-hidden="true"><defs><radialGradient id="gl" cx=".35" cy=".3"><stop offset="0" stopColor="#2f7bff" stopOpacity=".45"/><stop offset="1" stopColor="#0a1230" stopOpacity=".2"/></radialGradient></defs><circle cx="200" cy="200" r="170" fill="url(#gl)" stroke="#2f5bd0" strokeOpacity=".6"/>{[150,105,55].map(r=><ellipse key={r} cx="200" cy="200" rx={r} ry="170" fill="none" stroke="#5aa2ff" strokeOpacity=".28"/>)}{[-110,-55,0,55,110].map(y=><ellipse key={y} cx="200" cy={200+y} rx={Math.sqrt(170*170-y*y)} ry="14" fill="none" stroke="#5aa2ff" strokeOpacity=".22"/>)}{[[150,120],[240,150],[120,230],[280,260],[200,320],[210,95],[300,190]].map(([x,y],i)=><circle key={i} className="gd" style={{animationDelay:i*.35+"s"}} cx={x} cy={y} r="4.5" fill="#38bdf8"/>)}</svg></div></section>}
 
-const LIVECHAT_URL=""; // optional: your Tawk.to / Crisp chat link — opens instead of the panel
 function Support(){
  const [uid,setUid]=useState(null),[ready,setReady]=useState(false);
  const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]);
@@ -461,48 +460,6 @@ function Support(){
    </div>}
   </div></section>
  </>}
-
-function ChatWidget(){const [open,setOpen]=useState(false),[tip,setTip]=useState(false),loc=useLocation();
- const [uid,setUid]=useState(null),[conv,setConv]=useState(null),[msgs,setMsgs]=useState([]),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
- const endRef=useRef(null);
- useEffect(()=>{setOpen(false)},[loc.pathname]);
- useEffect(()=>{const t=setTimeout(()=>setTip(true),4000);return()=>clearTimeout(t)},[]);
- useEffect(()=>{supabase.auth.getUser().then(({data})=>setUid(data?.user?.id||null));const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
- // load the trader's conversation and messages (RLS: own rows only); refresh every 3 seconds while open
- useEffect(()=>{if(!open||!uid)return;let live=true;
-   const load=async()=>{const {data:c}=await supabase.from("support_conversations").select("id").eq("trader_id",uid).order("created_at",{ascending:false}).limit(1).maybeSingle();
-     if(!live)return; setConv(c?c.id:null);
-     if(c){const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",c.id).order("created_at",{ascending:true}).limit(200);if(live&&m)setMsgs(m)}};
-   load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid]);
- useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"nearest"})},[msgs,open]);
- const send=async(body)=>{const v=(body||"").trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
-   try{let id=conv;
-     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setConv(id)}
-     const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
-     setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);if(m)setMsgs(m);
-   }catch(e){setErr("Message could not be sent. Please try again.")}
-   setBusy(false)};
- const quick=[["Programs & pricing","/challenges"],["Payouts","/legal/payouts"],["Trading rules","/faq"],["Refunds","/legal/refunds"]];
- const tg=SOCIALS.find(x=>x[0]==="Telegram")[2],wa=SOCIALS.find(x=>x[0]==="WhatsApp")[2];
- const toggle=()=>{setTip(false);if(LIVECHAT_URL){window.open(LIVECHAT_URL,"_blank");return}setOpen(!open)};
- return <div className="chat">
-  {open&&<div className="chat-panel" role="dialog" aria-label="Support chat"><div className="chat-head"><img src={logo} alt=""/><div><b>ElectraPips Support</b><small>Ask us anything</small></div><button aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>
-   <div className="chat-body">
-    <div className="msg">Hi 👋 How can we help you today?</div>
-    {uid?<>
-      {msgs.map(m=><div key={m.id} className={"msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type==="trader"?null:<small>ElectraPips Team</small>}{m.body}</div>)}
-      <div className="chips">{quick.map(([l])=><button key={l} type="button" className="chip-q" disabled={busy} onClick={()=>send(l)}>{l}</button>)}</div>
-      {err&&<div className="chat-err">{err}</div>}
-      <div ref={endRef}/>
-    </>:<>
-      <div className="chips">{quick.map(([l,to])=><Link key={l} to={to} className="chip-q">{l}</Link>)}</div>
-      <div className="chat-signin">To chat with our team, <Link to="/login">sign in</Link> first.</div>
-    </>}
-   </div>
-   {uid&&<form className="chat-input" onSubmit={(e)=>{e.preventDefault();send(text)}}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button type="submit" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>}
-   <div className="chat-foot"><a className="chat-act" href={tg} target="_blank" rel="noreferrer"><Send size={16}/>Telegram</a><a className="chat-act alt" href={wa} target="_blank" rel="noreferrer"><MessageCircle size={16}/>WhatsApp</a><Link className="chat-link" to="/support">Open full support chat <ArrowRight size={14}/></Link><Link className="chat-link" to="/contact">Or send us a message <ArrowRight size={14}/></Link></div></div>}
-  {tip&&!open&&<div className="chat-tip"><button onClick={()=>setTip(false)} aria-label="Dismiss"><X size={12}/></button>Need help? Chat with us</div>}
-  <button className={"chat-btn"+(open?" on":"")} aria-label="Open support chat" onClick={toggle}>{open?<X size={26}/>:<MessageCircle size={28}/>}</button></div>}
 
 function Counter({to,pre="",suf="",dur=1800}){const [v,setV]=useState(0),ref=useRef(null);
  useEffect(()=>{const el=ref.current;if(!el)return;let raf,done=false;
