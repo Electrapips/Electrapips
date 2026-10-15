@@ -289,15 +289,39 @@ const SPECS=[
  ["Direct",[["Profit share","50% · 65% · up to 75%"],["News trading","Not allowed (CPI, NFP, FOMC)"],["Weekend holding","Not allowed"],["Min. trading days","None"],["Stop Loss","Required at all times"],["Max risk per trade","1%"],["Position / lot limit","None"],["Consistency requirement","None"]]]
 ];
 function FullSpecs(){return <section><div className="container"><div className="section-head center-head"><div className="mono-eye">PROGRAM SPECIFICATIONS</div><h2>Profit share <span className="hl">& program details.</span></h2><p>Daily Loss resets at 00:00 server time. Drawdown is static and based on the starting balance on every program.</p></div><div className="specs">{(SPECS||[]).map(([n,rows])=>{const f=INFO[n]||{};return <div className="spec-card" key={n} style={vars(f)}><h3>{n}</h3><ul>{(rows||[]).map(([l,v])=><li key={l}><span>{l}</span><b>{v}</b></li>)}</ul></div>})}</div></div></section>}
+function ForgotPassword(){
+ const [email,setEmail]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState("");
+ const send=async(e)=>{e.preventDefault();setErr("");const v=email.trim();if(!/^\S+@\S+\.\S+$/.test(v)){setErr("Please enter a valid email address.");return}
+   setBusy(true);
+   const {error}=await supabase.auth.resetPasswordForEmail(v,{redirectTo:window.location.origin+"/?type=recovery"});
+   setBusy(false);
+   if(error){setErr(error.message);return}
+   setSent(v)};
+ return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>ACCOUNT RECOVERY</Eyebrow><h1>Reset your <span className="hl">password.</span></h1><p>Enter the email you registered with. We will send you a secure link to choose a new password.</p></div>
+  <div className="login-card">
+   {sent?<div>
+     <h3>Check your email</h3>
+     <p style={{color:"#94a3b8"}}>If an account exists for <b style={{color:"#fff"}}>{sent}</b>, a password reset link has been sent. The link expires after a short time.</p>
+     <p style={{color:"#94a3b8",fontSize:13}}>Didn't get it? Check your spam folder, or <button type="button" onClick={()=>setSent("")} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,cursor:"pointer",padding:0}}>try another email</button>.</p>
+     <Link className="btn btn-ghost" to="/login" style={{width:"100%",textAlign:"center"}}>Back to sign in</Link>
+   </div>
+   :<form onSubmit={send}>
+     <label>Email<span className="inp"><Mail size={16}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email"/></span></label>
+     {err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}
+     <button className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!email.trim()}>{busy?"Sending…":"Send reset link"}</button>
+     <p style={{textAlign:"center",marginTop:14}}><Link to="/login" style={{color:"#5aa2ff",fontWeight:600}}>Back to sign in</Link></p>
+   </form>}
+  </div></div></section>}
+
 function ResetPassword(){
  const [show,setShow]=useState(false);
  const [ready,setReady]=useState(false),[has,setHas]=useState(false),[pw,setPw]=useState(""),[pw2,setPw2]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[done,setDone]=useState(false);
  useEffect(()=>{supabase.auth.getSession().then(({data})=>{setHas(!!data?.session);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((ev,s)=>{if(ev==="PASSWORD_RECOVERY"||s)setHas(!!s);setReady(true)});return()=>sub?.subscription?.unsubscribe()},[]);
- const save=async(e)=>{e.preventDefault();setErr("");if(pw.length<8){setErr("Password must be at least 8 characters.");return}if(pw!==pw2){setErr("Passwords do not match.");return}setBusy(true);const {error}=await supabase.auth.updateUser({password:pw});setBusy(false);if(error){setErr(error.message);return}setDone(true);setTimeout(()=>{window.location.hash="#/portal"},1500)};
+ const save=async(e)=>{e.preventDefault();setErr("");if(pw.length<8){setErr("Password must be at least 8 characters.");return}if(pw!==pw2){setErr("Passwords do not match.");return}setBusy(true);const {error}=await supabase.auth.updateUser({password:pw});setBusy(false);if(error){setErr(error.message);return}setDone(true);await supabase.auth.signOut();try{sessionStorage.setItem("ep_pw_reset","1")}catch(e){};setTimeout(()=>{window.location.hash="#/login"},1200)};
  return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>ACCOUNT SECURITY</Eyebrow><h1>Set a new <span className="hl">password.</span></h1><p>Choose a strong password you have not used before.</p></div>
   <div className="login-card">
    {!ready?null:!has?<div><h3>Link expired or invalid</h3><p style={{color:"#94a3b8"}}>Request a new reset link from the sign-in page.</p><Link className="btn btn-primary" to="/login" style={{width:"100%",textAlign:"center"}}>Back to sign in</Link></div>
-   :done?<div><h3>Password updated</h3><p style={{color:"#4ade80"}}>Redirecting to your dashboard…</p></div>
+   :done?<div><h3>Password updated</h3><p style={{color:"#4ade80"}}>Taking you to the sign-in page…</p></div>
    :<form onSubmit={save}>
      <label>New password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={pw} onChange={e=>setPw(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password"/><button type="button" className="eye" aria-label="Show password" onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>
      <label>Confirm new password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={pw2} onChange={e=>setPw2(e.target.value)} placeholder="Repeat password" autoComplete="new-password"/></span></label>
@@ -306,9 +330,8 @@ function ResetPassword(){
    </form>}
   </div></div></section>}
 
-function Login(){const [show,setShow]=useState(false);const [em,setEm]=useState("");const [pw,setPw]=useState("");const [err,setErr]=useState("");const [busy,setBusy]=useState(false);const [resetMsg,setResetMsg]=useState("");
- const sendReset=async()=>{setErr("");setResetMsg("");if(!em){setErr("Enter your email above first, then click Forgot password.");return}setBusy(true);const {error}=await supabase.auth.resetPasswordForEmail(em.trim(),{redirectTo:window.location.origin+"/#/reset-password"});setBusy(false);if(error){setErr(error.message);return}setResetMsg("If an account exists for this email, a password reset link has been sent.")};
- const doSignIn=async()=>{setErr("");setBusy(true);const {error}=await supabase.auth.signInWithPassword({email:em,password:pw});setBusy(false);if(error){setErr(error.message);return}window.location.hash="#/portal"};return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>TRADER ACCESS</Eyebrow><h1>Welcome <span className="hl">back.</span></h1><p>Sign in to your trader dashboard.</p><ul>{[[ShieldCheck,"Clear, published rules"],[Layers,"Four program models"],[Wallet,"Straightforward payout terms"]].map(([I,t])=><li key={t}><I/>{t}</li>)}</ul></div><form className="login-card" onSubmit={e=>e.preventDefault()}><h2>Sign in</h2><label>Email<span className="inp"><Mail size={16}/><input type="email" name="ep-login-email" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" value={em} onChange={e=>setEm(e.target.value)}/></span></label><label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} placeholder="••••••••" value={pw} onChange={e=>setPw(e.target.value)}/><button type="button" className="eye" aria-label="Show password" onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label><div style={{textAlign:"right",marginTop:-6}}><button type="button" onClick={sendReset} disabled={busy} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,fontSize:13,cursor:"pointer",padding:0}}>Forgot password?</button></div>{resetMsg&&<p style={{color:"#4ade80",fontSize:13}}>{resetMsg}</p>}{err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}<button type="button" className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!em||!pw} onClick={doSignIn}>{busy?"Signing in…":"Sign in"}</button><p>New to ElectraPips? <Link to="/signup">Create an account</Link></p><p className="auth-note">Demo build — sign-in isn't connected to a real account yet. This button opens the Trader Portal preview.</p></form></div></section>}
+function Login(){const [show,setShow]=useState(false);const [em,setEm]=useState("");const [pw,setPw]=useState("");const [err,setErr]=useState("");const [busy,setBusy]=useState(false);const [notice]=useState(()=>{try{if(sessionStorage.getItem("ep_pw_reset")){sessionStorage.removeItem("ep_pw_reset");return "Password updated. Please sign in with your new password."}}catch(e){}return ""});
+ const doSignIn=async()=>{setErr("");setBusy(true);const {error}=await supabase.auth.signInWithPassword({email:em,password:pw});setBusy(false);if(error){setErr(error.message);return}window.location.hash="#/portal"};return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>TRADER ACCESS</Eyebrow><h1>Welcome <span className="hl">back.</span></h1><p>Sign in to your trader dashboard.</p><ul>{[[ShieldCheck,"Clear, published rules"],[Layers,"Four program models"],[Wallet,"Straightforward payout terms"]].map(([I,t])=><li key={t}><I/>{t}</li>)}</ul></div><form className="login-card" onSubmit={e=>e.preventDefault()}><h2>Sign in</h2><label>Email<span className="inp"><Mail size={16}/><input type="email" name="ep-login-email" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} placeholder="you@example.com" value={em} onChange={e=>setEm(e.target.value)}/></span></label><label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} placeholder="••••••••" value={pw} onChange={e=>setPw(e.target.value)}/><button type="button" className="eye" aria-label="Show password" onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>{notice&&<p style={{color:"#4ade80",fontSize:13}}>{notice}</p>}<div style={{textAlign:"right",marginTop:-6}}><button type="button" onClick={()=>{window.location.hash="#/forgot-password"}} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,fontSize:13,cursor:"pointer",padding:0}}>Forgot password?</button></div>{err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}<button type="button" className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!em||!pw} onClick={doSignIn}>{busy?"Signing in…":"Sign in"}</button><p>New to ElectraPips? <Link to="/signup">Create an account</Link></p><p className="auth-note">Demo build — sign-in isn't connected to a real account yet. This button opens the Trader Portal preview.</p></form></div></section>}
 function Signup(){const [step,setStep]=useState(1);const [show,setShow]=useState(false);const [busy,setBusy]=useState(false);const [err,setErr]=useState("");const [done,setDone]=useState("");
  const [d,setD]=useState({name:"",email:"",password:"",country:"",phone:"",agree:false});
  const on=k=>e=>setD({...d,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
@@ -354,7 +377,7 @@ function Start(){return <><PageHero eyebrow="START YOUR JOURNEY" title="Choose y
 function PublicSite(){return <Layout><Routes>
   <Route path="/" element={<Home/>}/><Route path="challenges" element={<Challenges/>}/><Route path="support" element={<Support/>}/><Route path="how-it-works" element={<How/>}/>
   <Route path="leaderboard" element={<Leaderboard/>}/><Route path="affiliate" element={<Affiliate/>}/><Route path="about" element={<About/>}/>
-  <Route path="faq" element={<FAQ/>}/><Route path="contact" element={<Contact/>}/><Route path="legal" element={<Legal/>}/><Route path="legal/:section" element={<Legal/>}/><Route path="login" element={<Login/>}/><Route path="reset-password" element={<ResetPassword/>}/><Route path="signup" element={<Signup/>}/><Route path="start-challenge" element={<Start/>}/>
+  <Route path="faq" element={<FAQ/>}/><Route path="contact" element={<Contact/>}/><Route path="legal" element={<Legal/>}/><Route path="legal/:section" element={<Legal/>}/><Route path="login" element={<Login/>}/><Route path="reset-password" element={<ResetPassword/>}/><Route path="forgot-password" element={<ForgotPassword/>}/><Route path="signup" element={<Signup/>}/><Route path="start-challenge" element={<Start/>}/>
   <Route path="tools/risk-calculator" element={<RiskCalc/>}/><Route path="tools/position-size-calculator" element={<PositionCalc/>}/><Route path="tools/pip-calculator" element={<PipCalc/>}/><Route path="tools/trading-journal" element={<TradingJournal/>}/>
   <Route path="market/economic-calendar" element={<EconCalendar/>}/><Route path="market/sessions" element={<MarketSessions/>}/><Route path="market/news" element={<MarketNews/>}/>
  </Routes></Layout>}
@@ -375,6 +398,7 @@ class EPErrorBoundary extends React.Component{
 }
 export default function App(){
  const [,setVer]=useState(0);
+ useEffect(()=>{if(window.location.hash.indexOf("type=recovery")>-1){setTimeout(()=>{window.location.hash="#/reset-password"},150)}},[]);
  useEffect(()=>{
    let live=true;
    // Site renders immediately with built-in data; Supabase data is applied in the background
