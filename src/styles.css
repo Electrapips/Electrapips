@@ -1502,3 +1502,27 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fc-tabs button:hover{color:#e2e8f0}
 @keyframes fcIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:620px){.fc-panel{right:10px;bottom:84px;width:calc(100vw - 20px);height:min(560px,calc(100vh - 110px))}}
+
+/* Floating panel: conversation list, new chat, thread, dark scrollbars */
+.fc-body,.fc-msgs,.fc-panel{scrollbar-width:thin;scrollbar-color:#1b2a4a #070c18}
+.fc-body::-webkit-scrollbar,.fc-msgs::-webkit-scrollbar{width:6px}
+.fc-body::-webkit-scrollbar-track,.fc-msgs::-webkit-scrollbar-track{background:#070c18}
+.fc-body::-webkit-scrollbar-thumb,.fc-msgs::-webkit-scrollbar-thumb{background:#1b2a4a;border-radius:6px}
+.fc-list{display:grid;gap:8px;align-content:start}
+.fc-newbtn{width:100%;justify-content:center}
+.fc-list-title{font:600 11px var(--mono);letter-spacing:.14em;color:#64748b;text-transform:uppercase;margin:8px 2px 2px}
+.fc-conv{display:grid;gap:4px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid #16223c;background:#0a1120;color:#e2e8f0;cursor:pointer;transition:all .2s}
+.fc-conv:hover{border-color:rgba(47,123,255,.45);background:#0f1b38}
+.fc-conv b{font:600 14px var(--font);color:#fff}
+.fc-conv span{font-size:12px;color:#64748b}
+.fc-st{justify-self:start;font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid #1b2a4a;color:#94a3b8;font-style:normal}
+.fc-st.active{color:#4ade80;border-color:rgba(74,222,128,.4)}
+.fc-st.closed{color:#64748b}
+.fc-thread{display:flex;flex-direction:column;height:100%;min-height:360px}
+.fc-thead{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #16223c;margin-bottom:8px}
+.fc-thead b{display:block;font:600 14px var(--font);color:#fff}
+.fc-thead small{font-size:12px;color:#64748b}
+.fc-back{width:34px;height:34px;border-radius:10px;border:1px solid #1b2a4a;background:#0a1120;color:#e2e8f0;cursor:pointer;flex:none}
+.fc-back:hover{border-color:rgba(47,123,255,.5)}
+.fc-msg time{display:block;margin-top:4px;font:500 10px var(--mono);color:#64748b}
+.fc-msg.me time{color:rgba(255,255,255,.75)}

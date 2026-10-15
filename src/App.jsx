@@ -28,36 +28,46 @@ const programs = [
 
 function FloatingChat(){
  const [open,setOpen]=useState(false),[tab,setTab]=useState("home"),[uid,setUid]=useState(null),[ready,setReady]=useState(false);
- const [convId,setConvId]=useState(null),[msgs,setMsgs]=useState([]),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]),[view,setView]=useState("list");
+ const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[lbusy,setLbusy]=useState(false),[lerr,setLerr]=useState("");
  const endRef=useRef(null);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
+ // conversation list (own rows only, RLS)
  useEffect(()=>{if(!open||!uid)return;let live=true;
-   const load=async()=>{const {data:c}=await supabase.from("support_conversations").select("id").eq("trader_id",uid).order("created_at",{ascending:false}).limit(1).maybeSingle();
-     if(!live)return;setConvId(c?c.id:null);
-     if(c){const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",c.id).order("created_at",{ascending:true}).limit(200);if(live&&m)setMsgs(m)}};
-   load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid]);
- useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,tab]);
+   const load=async()=>{const {data}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(50);if(live&&data)setConvs(data)};
+   load();const t=setInterval(load,5000);return()=>{live=false;clearInterval(t)}},[open,uid]);
+ // messages of the open thread
+ useEffect(()=>{if(!open||!uid||!active)return;let live=true;
+   const load=async()=>{const {data}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",active).order("created_at",{ascending:true}).limit(300);if(live&&data)setMsgs(data)};
+   load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,active]);
+ useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view]);
+ const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("")};
+ const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("")};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
-   try{let id=convId;
-     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setConvId(id)}
+   try{let id=active;
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
-     setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(200);if(m)setMsgs(m);
+     setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);if(m)setMsgs(m);
+     const {data:cl}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(50);if(cl)setConvs(cl);
    }catch(e2){setErr("Message could not be sent. Please try again.")}
    setBusy(false)};
  const login=async(e)=>{e.preventDefault();setLerr("");setLbusy(true);const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pw});setLbusy(false);if(error){setLerr(error.message);return}setPw("");setTab("messages")};
  const go=(to)=>{setOpen(false);window.location.hash=to};
+ const fmt=(iso)=>new Date(iso).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+ const current=convs.find(c=>c.id===active);
  return <>
   {open&&<div className="fc-panel" role="dialog" aria-label="ElectraPips support">
    <div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips Support</b><small>We usually reply in a few minutes</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>
    <div className="fc-body">
     {tab==="home"&&<div className="fc-home">
       <div className="fc-hello"><span>Welcome 👋</span><h3>How can we help you today?</h3></div>
-      <button className="fc-card" onClick={()=>setTab("messages")}><span><Send size={16}/> Send us a message</span><ArrowRight size={16}/></button>
+      <button className="fc-card" onClick={()=>{setTab("messages");setView("list")}}><span><Send size={16}/> Send us a message</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> Frequently asked questions</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/challenges")}><span><Layers size={16}/> Programs &amp; pricing</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/contact")}><span><Mail size={16}/> Contact page</span><ArrowRight size={16}/></button>
     </div>}
+
     {tab==="messages"&&(!ready?null:!uid?<form className="fc-login" onSubmit={login}>
       <h3>Sign in to chat</h3><p>Your conversations are saved to your account.</p>
       <label>Email<input type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
@@ -65,13 +75,22 @@ function FloatingChat(){
       {lerr&&<p className="fc-err">{lerr}</p>}
       <button className="btn btn-primary" style={{width:"100%"}} disabled={lbusy||!email||!pw}>{lbusy?"Signing in…":"Sign in"}</button>
       <p className="fc-alt">No account? <a href="#/signup" onClick={()=>setOpen(false)}>Create one</a></p>
-    </form>:<div className="fc-thread">
+    </form>
+    :view==="list"?<div className="fc-list">
+      <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
+      <div className="fc-list-title">Your conversations</div>
+      {convs.length===0&&<p className="fc-empty">No conversations yet. Start a new chat.</p>}
+      {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status}</i></button>)}
+    </div>
+    :<div className="fc-thread">
+      <div className="fc-thead"><button className="fc-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back">←</button><div><b>{current?.subject||"New chat"}</b><small>{current?"Conversation":"Send your first message"}</small></div></div>
       <div className="fc-msgs">{msgs.length===0&&<p className="fc-empty">Hi 👋 Send us a message and our team will reply here.</p>}
-        {msgs.map(m=><div key={m.id} className={"fc-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}{m.body}</div>)}
+        {msgs.map(m=><div key={m.id} className={"fc-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}{m.body}<time>{fmt(m.created_at)}</time></div>)}
         <div ref={endRef}/></div>
       {err&&<p className="fc-err">{err}</p>}
       <form className="fc-compose" onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>
     </div>)}
+
     {tab==="help"&&<div className="fc-home">
       <div className="fc-hello"><span>Help</span><h3>Quick links</h3></div>
       <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> FAQ</span><ArrowRight size={16}/></button>
@@ -81,7 +100,7 @@ function FloatingChat(){
    </div>
    <nav className="fc-tabs">
      <button className={tab==="home"?"on":""} onClick={()=>setTab("home")}><Layers size={18}/>Home</button>
-     <button className={tab==="messages"?"on":""} onClick={()=>setTab("messages")}><MessageCircle size={18}/>Messages</button>
+     <button className={tab==="messages"?"on":""} onClick={()=>{setTab("messages");setView("list")}}><MessageCircle size={18}/>Messages</button>
      <button className={tab==="help"?"on":""} onClick={()=>setTab("help")}><Info size={18}/>Help</button>
    </nav>
   </div>}
