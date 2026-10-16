@@ -869,7 +869,7 @@ function PortalWithdrawals(){const P=usePortalData();const V=P.view;const S=V?V.
 
 // Certificates use the ElectraPips certificate source exactly as delivered (public/certificates/*).
 // Each type has its own page; Supabase data is passed through the documented URL parameters, embed=1 hides the editor.
-const CERT_PAGE_OF={"Phase 1 Passed":"phase1.html","Phase 2 Passed":"phase1.html","Challenge Passed":"phase1.html","Performance Trader":"performance-trader.html","Payout":"payout.html","First Payout":"payout.html"};
+const CERT_PAGE_OF={"Phase 1 Passed":"phase1.html","Phase 2 Passed":"phase1.html","Challenge Passed":"phase1.html","Performance Trader":"performance-trader.html","Reward":"payout.html","Payout":"payout.html","First Payout":"payout.html"};
 const CERT_PROGRAM_OF={"2-Step Challenge":"2step","1-Step Challenge":"1step","Pay After Pass":"pap","Direct":"direct"};
 const numOf=(v)=>String(v??"").replace(/[^\d.]/g,"");
 function certUrl(c){

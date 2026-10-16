@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ElectraPips — Payout Certificate</title>
+<title>ElectraPips — Reward Certificate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -14,23 +14,23 @@
 
 <section class="controls" aria-label="Certificate details">
   <h2>Certificate details</h2>
-  <p>Generate a single Payout certificate. Fill in the details below — the certificate updates live.</p>
+  <p>Generate a single Reward certificate. Fill in the details below — the certificate updates live.</p>
 
   <div class="typeTabs" role="tablist" style="display:none">
     <button type="button" data-type="phase1">Phase 1 Passed</button>
     <button type="button" data-type="funded">Performance Trader</button>
-    <button type="button" data-type="payout" class="active">Payout</button>
-    <button type="button" data-type="totalpayout">Total Payout</button>
-    <button type="button" data-type="affiliate">Affiliate Payout</button>
+    <button type="button" data-type="payout" class="active">Reward</button>
+    <button type="button" data-type="totalpayout">Total Reward</button>
+    <button type="button" data-type="affiliate">Affiliate Reward</button>
   </div>
 
   <div class="fields">
     <label class="field">Trader name<input id="f-name" type="text" value="" placeholder="Enter trader's full name" autocomplete="off"></label>
 
     <label class="field" data-for="phase1,funded">Account size (USD)<input id="f-size" type="text" inputmode="numeric" value="100000" autocomplete="off"></label>
-    <label class="field" data-for="payout">Payout amount (USD)<input id="f-payout" type="text" inputmode="numeric" value="4820" autocomplete="off"></label>
-    <label class="field" data-for="totalpayout">Total payouts to date (USD)<input id="f-totalamt" type="text" inputmode="numeric" value="24500" autocomplete="off"></label>
-    <label class="field" data-for="affiliate">Affiliate payout amount (USD)<input id="f-affamt" type="text" inputmode="numeric" value="1250" autocomplete="off"></label>
+    <label class="field" data-for="payout">Reward amount (USD)<input id="f-payout" type="text" inputmode="numeric" value="4820" autocomplete="off"></label>
+    <label class="field" data-for="totalpayout">Total rewards to date (USD)<input id="f-totalamt" type="text" inputmode="numeric" value="24500" autocomplete="off"></label>
+    <label class="field" data-for="affiliate">Affiliate reward amount (USD)<input id="f-affamt" type="text" inputmode="numeric" value="1250" autocomplete="off"></label>
 
     <label class="field" data-for="phase1,funded,payout">Program
       <select id="f-program">
@@ -44,10 +44,10 @@
     <label class="field" data-for="phase1">Profit target reached (%)<input id="f-target" type="text" inputmode="numeric" value="8" autocomplete="off"></label>
     <label class="field" data-for="funded">Profit split (%)<input id="f-split" type="text" inputmode="numeric" value="85" autocomplete="off"></label>
     <label class="field" data-for="funded">Award level<input id="f-award" type="text" value="CML" autocomplete="off"></label>
-    <label class="field" data-for="payout">Payout number<input id="f-payoutno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
-    <label class="field" data-for="totalpayout">Number of payouts<input id="f-paycount" type="text" inputmode="numeric" value="6" autocomplete="off"></label>
+    <label class="field" data-for="payout">Reward number<input id="f-payoutno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
+    <label class="field" data-for="totalpayout">Number of rewards<input id="f-paycount" type="text" inputmode="numeric" value="6" autocomplete="off"></label>
     <label class="field" data-for="totalpayout">Trader since<input id="f-since" type="date" value="2026-03-01"></label>
-    <label class="field" data-for="affiliate">Payout number<input id="f-affno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
+    <label class="field" data-for="affiliate">Reward number<input id="f-affno" type="text" inputmode="numeric" value="1" autocomplete="off"></label>
     <label class="field" data-for="affiliate">Affiliate ID<input id="f-affid" type="text" value="AP-1029" autocomplete="off"></label>
 
     <label class="field">Date issued<input id="f-date" type="date" value="2026-09-21"></label>
@@ -179,7 +179,7 @@
   </div>
 </main>
 
-<script>window.CERT_DEFAULT_TYPE = "payout";</script>
+<script>window.CERT_DEFAULT_TYPE = "reward";</script>
 <script src="js/script.js"></script>
 </body>
 </html>

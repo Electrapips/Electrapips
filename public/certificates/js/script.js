@@ -38,26 +38,26 @@
       premium: true
     },
     payout: {
-      kicker: "Payout Issued",
-      h1: "Payout Certificate",
+      kicker: "Reward Issued",
+      h1: "Reward Certificate",
       lead: "This certificate confirms that",
-      state: "has received a payout from their ElectraPips trading account in the amount of",
+      state: "has received a reward from their ElectraPips trading account in the amount of",
       amountFrom: function(){ return moneyFrom("f-payout"); },
-      chip2Label: "Payout no.",
+      chip2Label: "Reward no.",
       chip2Value: function(){ return "#" + (document.getElementById("f-payoutno").value.trim() || "1"); },
-      sealText: "PAYOUT CONFIRMED • ELECTRAPIPS • ",
+      sealText: "REWARD CONFIRMED • ELECTRAPIPS • ",
       idPrefix: "EP-PO"
     },
     totalpayout: {
-      kicker: "Total Payouts",
-      h1: "Total Payout Certificate",
+      kicker: "Total Rewards",
+      h1: "Total Reward Certificate",
       lead: "This certificate proudly confirms that",
       state: function(){
         var n = $("f-paycount").value.trim() || "1";
-        return "has received a cumulative total of the following in payouts from their ElectraPips trading account, across " + n + " successful " + (n === "1" ? "payout" : "payouts") + ":";
+        return "has received a cumulative total of the following in rewards from their ElectraPips trading account, across " + n + " successful " + (n === "1" ? "reward" : "rewards") + ":";
       },
       amountFrom: function(){ return moneyFrom("f-totalamt"); },
-      chip2Label: "Payouts to date",
+      chip2Label: "Rewards to date",
       chip2Value: function(){ return "#" + ($("f-paycount").value.trim() || "1"); },
       chip3Label: "Trader since",
       chip3Value: function(){
@@ -67,21 +67,21 @@
         if(isNaN(d)) return v;
         return d.toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
       },
-      sealText: "TOTAL PAYOUTS • ELECTRAPIPS • ",
+      sealText: "TOTAL REWARDS • ELECTRAPIPS • ",
       idPrefix: "EP-TP",
       showProgram: false
     },
     affiliate: {
-      kicker: "Affiliate Payout",
-      h1: "Affiliate Payout Certificate",
+      kicker: "Affiliate Reward",
+      h1: "Affiliate Reward Certificate",
       lead: "This certificate confirms that",
-      state: "has received an affiliate payout from the ElectraPips referral program in the amount of",
+      state: "has received an affiliate reward from the ElectraPips referral program in the amount of",
       amountFrom: function(){ return moneyFrom("f-affamt"); },
-      chip2Label: "Payout no.",
+      chip2Label: "Reward no.",
       chip2Value: function(){ return "#" + ($("f-affno").value.trim() || "1"); },
       chip3Label: "Affiliate ID",
       chip3Value: function(){ return $("f-affid").value.trim() || "—"; },
-      sealText: "AFFILIATE PAYOUT • ELECTRAPIPS • ",
+      sealText: "AFFILIATE REWARD • ELECTRAPIPS • ",
       idPrefix: "EP-AF",
       showProgram: false
     }
