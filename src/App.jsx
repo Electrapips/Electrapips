@@ -337,10 +337,10 @@ function Signup(){
  const [f,setF]=useState({first:"",last:"",email:"",country:"",password:"",agree:false});
  const [show,setShow]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState(""),[resent,setResent]=useState("");
  const on=(k)=>(e)=>setF({...f,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
- const pwOk=f.password.length>=12;
+ const pwOk=f.password.length>=6;
  const valid=f.first.trim()&&f.last.trim()&&/^\S+@\S+\.\S+$/.test(f.email.trim())&&f.country&&pwOk&&f.agree;
  const submit=async(e)=>{e.preventDefault();setErr("");
-   if(!valid){setErr("Please complete every field. Password must be at least 12 characters.");return}
+   if(!valid){setErr("Please complete every field. Password must be at least 6 characters.");return}
    setBusy(true);
    const email=f.email.trim();
    const {data,error}=await supabase.auth.signUp({email,password:f.password,options:{data:{full_name:(f.first.trim()+" "+f.last.trim()),country:f.country}}});
@@ -361,8 +361,8 @@ function Signup(){
     <div className="su-row2"><label>First name<input value={f.first} onChange={on("first")} autoComplete="given-name" required/></label><label>Last name<input value={f.last} onChange={on("last")} autoComplete="family-name" required/></label></div>
     <label>Email<input type="email" value={f.email} onChange={on("email")} autoComplete="email" placeholder="you@example.com" required/></label>
     <label>Country of residence<select value={f.country} onChange={on("country")} required><option value="">Select your country</option>{COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-    <label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={f.password} onChange={on("password")} autoComplete="new-password" placeholder="At least 12 characters" required/><button type="button" className="eye" aria-label={show?"Hide password":"Show password"} onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>
-    <small className={"su-hint"+(f.password&&!pwOk?" bad":"")}>{pwOk?"Strong enough.":"Use at least 12 characters (letters, numbers and symbols recommended)."}</small>
+    <label>Password<span className="inp"><Lock size={16}/><input type={show?"text":"password"} value={f.password} onChange={on("password")} autoComplete="new-password" placeholder="At least 6 characters" required/><button type="button" className="eye" aria-label={show?"Hide password":"Show password"} onClick={()=>setShow(!show)}>{show?<EyeOff size={16}/>:<Eye size={16}/>}</button></span></label>
+    <small className={"su-hint"+(f.password&&!pwOk?" bad":"")}>{pwOk?"Strong enough.":"Use at least 6 characters."}</small>
     <label className="su-check"><input type="checkbox" checked={f.agree} onChange={on("agree")}/><span>I accept the <Link to="/legal/terms">Terms &amp; Conditions</Link> and the <Link to="/legal/privacy">Privacy Policy</Link>.</span></label>
     {err&&<p className="sp-err">{err}</p>}
     <button className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!valid}>{busy?"Creating account…":"Create account"}</button>
