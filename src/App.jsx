@@ -885,14 +885,18 @@ function certUrl(c){
  return "/certificates/"+page+"?"+q.toString();
 }
 
-function PortalCertificates(){const P=usePortalData();const V=P.view;const [openCert,setOpenCert]=useState(null);const frameRef=useRef(null);
+function PortalCertificates(){const P=usePortalData();const V=P.view;const [openCert,setOpenCert]=useState(null);const [pendingImg,setPendingImg]=useState(false);const frameRef=useRef(null);
  const printCert=()=>{try{frameRef.current&&frameRef.current.contentWindow.print()}catch(e){}};
+ // The certificate design already has a "Save as Image" routine (html2canvas, PNG). Trigger it inside the same-origin frame.
+ const saveImg=()=>{try{const d=frameRef.current&&frameRef.current.contentDocument;const b=d&&d.getElementById("save-img-btn");if(b){b.hidden=false;b.click()}}catch(e){}};
+ const frameLoaded=()=>{if(pendingImg){setPendingImg(false);setTimeout(saveImg,500)}};
+ const downloadImage=(c)=>{if(openCert&&openCert.certNo===c.certNo){saveImg();return}setPendingImg(true);setOpenCert(c)};
  return <PortalShell active="/portal/certificates"><PtHead title="Your Achievements" text="Celebrate your trading milestones with ElectraPips."/>
- {!V||!V.certs.length?<NoData text="No certificates yet. They are issued automatically when you pass a phase, reach a challenge pass, or receive your first reward."/>:<div className="cert-grid">{V.certs.map(c=><div className="cert-card" key={c.certNo}><div className="cert-top"><img src={logo} alt=""/><span>ELECTRAPIPS</span></div><div className="cert-tag">{c.type}</div><h3>{c.type.toUpperCase()}</h3><p>Awarded to</p><strong>{c.name}</strong><div className="cert-foot"><div><small>Certificate No.</small><b>{c.certNo}</b></div><div><small>Date</small><b>{c.date}</b></div></div>
- <div className="cert-btns"><button className="btn btn-ghost" onClick={()=>setOpenCert(c)}><FileText size={15}/>View Certificate</button><button className="btn btn-ghost" onClick={()=>{setOpenCert(c);setTimeout(printCert,900)}}><Download size={15}/>Download PDF</button></div></div>)}</div>}
+ {!V||!V.certs.length?<NoData text="No certificates yet. They are issued automatically when you pass a phase, reach a challenge pass, or receive your first payout."/>:<div className="cert-grid">{V.certs.map(c=><div className="cert-card" key={c.certNo}><div className="cert-top"><img src={logo} alt=""/><span>ELECTRAPIPS</span></div><div className="cert-tag">{c.type}</div><h3>{c.type.toUpperCase()}</h3><p>Awarded to</p><strong>{c.name}</strong><div className="cert-foot"><div><small>Certificate No.</small><b>{c.certNo}</b></div><div><small>Date</small><b>{c.date}</b></div></div>
+ <div className="cert-btns"><button className="btn btn-ghost" onClick={()=>{setPendingImg(false);setOpenCert(c)}}><FileText size={15}/>View Certificate</button><button className="btn btn-ghost" onClick={()=>downloadImage(c)}><Download size={15}/>Download Image</button><button className="btn btn-ghost" onClick={()=>{setPendingImg(false);setOpenCert(c);setTimeout(printCert,900)}}><Download size={15}/>Download PDF</button></div></div>)}</div>}
  {openCert&&<div className="cert-modal" onClick={()=>setOpenCert(null)}><div className="cert-modal-inner" onClick={e=>e.stopPropagation()}>
-  <div className="cert-modal-bar no-print"><span>Certificate preview</span><div><button className="btn btn-primary" onClick={printCert}><Download size={14}/>Print / Save as PDF</button><button className="pt-icon-btn" onClick={()=>setOpenCert(null)} aria-label="Close"><X size={16}/></button></div></div>
-  <iframe ref={frameRef} title="Certificate" src={certUrl(openCert)} className="cert-frame" style={{width:"100%",aspectRatio:"1.414 / 1",border:0,borderRadius:18,background:"#080e1c"}}/>
+  <div className="cert-modal-bar no-print"><span>Certificate preview</span><div><button className="btn btn-ghost" onClick={saveImg}><Download size={14}/>Save as Image</button><button className="btn btn-primary" onClick={printCert}><Download size={14}/>Print / Save as PDF</button><button className="pt-icon-btn" onClick={()=>setOpenCert(null)} aria-label="Close"><X size={16}/></button></div></div>
+  <iframe ref={frameRef} title="Certificate" src={certUrl(openCert)} onLoad={frameLoaded} className="cert-frame" style={{width:"100%",aspectRatio:"1.414 / 1",border:0,borderRadius:18,background:"#080e1c"}}/>
  </div></div>}
  </PortalShell>}
 
