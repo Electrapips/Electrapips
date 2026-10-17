@@ -593,7 +593,7 @@ const NUMS=[[600,"$","K","Max Funding","per account",Wallet],[90,"","%","Profit 
 function StatsBar(){return <section className="nums"><div className="container"><div className="section-head center-head"><div className="mono-eye">BY THE NUMBERS</div><h2>ElectraPips <span className="hl">in numbers.</span></h2></div><div className="nums-grid">{NUMS.map(([n,pre,x,l,sub,I])=><div className="num-item" key={l}><span className="ni-ico"><I size={22}/></span><strong><Counter to={n} pre={pre} suf={x}/></strong><b>{l}</b><em>{sub}</em></div>)}</div></div></section>}
 
 /* Payout proof: add real, consented payouts. Use "photo" for a screenshot image, or name/country/amount/date for a text card */
-const PROOFS=[{photo:proof1},{photo:proof2},{photo:proof3},{photo:proof4},{photo:proof5},{photo:proof6},{photo:proof7},{photo:proof8},{photo:proof9}]; // add more: [{photo:"https://..."}] or [{name:"...",country:"SA",amount:"$4,254.82",date:"Sep 2026"}]
+const PROOFS=[{photo:"/proofs/EP-PO-2026-0006.png"},{photo:"/proofs/EP-PO-2026-0007.png"},{photo:"/proofs/EP-PO-2026-0008.png"},{photo:"/proofs/EP-PO-2026-0009.png"}]; // add more: [{photo:"https://..."}] or [{name:"...",country:"SA",amount:"$4,254.82",date:"Sep 2026"}]
 const PH_PROOF=Array.from({length:10},()=>({name:"Trader name",country:"XX",amount:"$0,000.00",date:"— —"}));
 function PayoutProof(){const real=PROOFS.length>0,base=(real?PROOFS:PH_PROOF).slice(0,10),loop=[...base,...base];
  return <section className="proof"><div className="container"><div className="section-head center-head"><div className="mono-eye">REWARD PROOF</div><h2>Real traders. <span className="hl">Real rewards.</span></h2><p>A snapshot of recent trader rewards.</p></div></div>
