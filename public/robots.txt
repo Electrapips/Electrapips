@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /portal/
+Disallow: /checkout
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://www.electrapips.com/sitemap.xml
