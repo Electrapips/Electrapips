@@ -248,7 +248,7 @@ let faqs=[
 function FAQ(){const [q,setQ]=useState("");const [cat,setCat]=useState("All");const [open,setOpen]=useState({0:true});
  const catNames=[...new Set(faqs.map(f=>f[2]||"General"))];
  const cats=Object.fromEntries(catNames.map(c=>[c,faqs.map((f,i)=>((f[2]||"General")===c?i:-1)).filter(i=>i>=0)]));
- const ICON_OF={All:Layers,General:Info,"Trading Rules":ShieldCheck,"Prohibited & Compliance":X,Rewards:Wallet,"Account & Payments":User};
+ const ICON_OF={All:Layers,General:Info,"Trading Rules":ShieldCheck,"Prohibited & Compliance":X,Rewards:Wallet,"Account & Payments":User,"Performance Trader":Award};
  const icons=new Proxy(ICON_OF,{get:(t,k)=>t[k]||Info});
  const items=faqs.map(([a,b],i)=>({i,a,b,c:Object.keys(cats).find(k=>cats[k].includes(i))})).filter(x=>(cat==="All"||x.c===cat)&&(x.a+" "+x.b).toLowerCase().includes(q.toLowerCase()));
  const groups=Object.keys(cats).map(c=>({c,list:items.filter(x=>x.c===c)})).filter(g=>g.list.length);
