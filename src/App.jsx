@@ -32,6 +32,16 @@ function FloatingChat(){
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[lbusy,setLbusy]=useState(false),[lerr,setLerr]=useState("");
  const endRef=useRef(null);
+ // Botpress AI assistant: loaded once, the first time the support panel opens. Client id comes from the botpress-config function.
+ const [bpReady,setBpReady]=useState(false);const bpLoading=useRef(false);
+ useEffect(()=>{if(!open||bpLoading.current)return;bpLoading.current=true;
+   supabase.functions.invoke("botpress-config",{body:{}}).then(({data,error})=>{
+     if(error||!data||!data.clientId)return;
+     const sc=document.createElement("script");sc.src="https://cdn.botpress.cloud/webchat/v2.2/inject.js";sc.async=true;
+     sc.onload=()=>{if(window.botpressWebChat){window.botpressWebChat.init({clientId:data.clientId,hideWidget:true,showPoweredBy:false});setBpReady(true)}};
+     document.head.appendChild(sc);
+   }).catch(()=>{});
+ },[open]);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
  // conversation list (own rows only, RLS)
  useEffect(()=>{if(!open||!uid)return;let live=true;
@@ -62,6 +72,7 @@ function FloatingChat(){
    <div className="fc-body">
     {tab==="home"&&<div className="fc-home">
       <div className="fc-hello"><span>Welcome 👋</span><h3>How can we help you today?</h3></div>
+      {bpReady&&<button className="fc-card" onClick={()=>{window.botpressWebChat&&window.botpressWebChat.sendEvent({type:"show"})}}><span><Zap size={16}/> Chat with our AI assistant</span><ArrowRight size={16}/></button>}
       <button className="fc-card" onClick={()=>{setTab("messages");setView("list")}}><span><Send size={16}/> Send us a message</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> Frequently asked questions</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/challenges")}><span><Layers size={16}/> Programs &amp; pricing</span><ArrowRight size={16}/></button>
