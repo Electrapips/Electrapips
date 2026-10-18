@@ -37,7 +37,7 @@ function FloatingChat(){
  useEffect(()=>{if(!open||bpLoading.current)return;bpLoading.current=true;
    const inj=document.createElement("script");inj.src="https://cdn.botpress.cloud/webchat/v5.0/inject.js";inj.async=false;
    inj.onload=()=>{const cfg=document.createElement("script");cfg.src="https://files.bpcontent.cloud/2026/10/18/07/20261018074645-J4551WID.js";cfg.defer=true;
-     cfg.onload=()=>setBpReady(true);document.body.appendChild(cfg)};
+     cfg.onload=()=>{setBpReady(true);const hideLauncher=()=>{try{const bp=window.botpress;if(bp&&bp.hide)bp.hide()}catch(e){}};setTimeout(hideLauncher,1500);try{window.botpress&&window.botpress.on&&window.botpress.on("webchat:ready",hideLauncher)}catch(e){}};document.body.appendChild(cfg)};
    document.head.appendChild(inj);
  },[open]);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
