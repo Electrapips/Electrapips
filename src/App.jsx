@@ -32,15 +32,13 @@ function FloatingChat(){
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[lbusy,setLbusy]=useState(false),[lerr,setLerr]=useState("");
  const endRef=useRef(null);
- // Botpress AI assistant: loaded once, the first time the support panel opens. Client id comes from the botpress-config function.
+ // Botpress AI assistant: the embed snippet (inject v5.0 + bot config) is loaded once, the first time the support panel opens.
  const [bpReady,setBpReady]=useState(false);const bpLoading=useRef(false);
  useEffect(()=>{if(!open||bpLoading.current)return;bpLoading.current=true;
-   supabase.functions.invoke("botpress-config",{body:{}}).then(({data,error})=>{
-     if(error||!data||!data.clientId)return;
-     const sc=document.createElement("script");sc.src="https://cdn.botpress.cloud/webchat/v2.2/inject.js";sc.async=true;
-     sc.onload=()=>{if(window.botpressWebChat){window.botpressWebChat.init({clientId:data.clientId,hideWidget:true,showPoweredBy:false});setBpReady(true)}};
-     document.head.appendChild(sc);
-   }).catch(()=>{});
+   const inj=document.createElement("script");inj.src="https://cdn.botpress.cloud/webchat/v5.0/inject.js";inj.async=false;
+   inj.onload=()=>{const cfg=document.createElement("script");cfg.src="https://files.bpcontent.cloud/2026/10/18/07/20261018074645-J4551WID.js";cfg.defer=true;
+     cfg.onload=()=>setBpReady(true);document.body.appendChild(cfg)};
+   document.head.appendChild(inj);
  },[open]);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
  // conversation list (own rows only, RLS)
@@ -72,7 +70,7 @@ function FloatingChat(){
    <div className="fc-body">
     {tab==="home"&&<div className="fc-home">
       <div className="fc-hello"><span>Welcome 👋</span><h3>How can we help you today?</h3></div>
-      {bpReady&&<button className="fc-card" onClick={()=>{window.botpressWebChat&&window.botpressWebChat.sendEvent({type:"show"})}}><span><Zap size={16}/> Chat with our AI assistant</span><ArrowRight size={16}/></button>}
+      {bpReady&&<button className="fc-card" onClick={()=>{window.botpress&&window.botpress.open&&window.botpress.open()}}><span><Zap size={16}/> Chat with our AI assistant</span><ArrowRight size={16}/></button>}
       <button className="fc-card" onClick={()=>{setTab("messages");setView("list")}}><span><Send size={16}/> Send us a message</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/faq")}><span><Info size={16}/> Frequently asked questions</span><ArrowRight size={16}/></button>
       <button className="fc-card" onClick={()=>go("#/challenges")}><span><Layers size={16}/> Programs &amp; pricing</span><ArrowRight size={16}/></button>
