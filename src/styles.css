@@ -1544,3 +1544,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .su-alt{text-align:center;color:#94a3b8;font-size:13px;margin:4px 0 0}
 .su-alt a{color:#5aa2ff;font-weight:600}
 @media(max-width:620px){.su-row2{grid-template-columns:1fr}}
+
+/* Hide Botpress's default launcher bubble; our own support icon/panel opens the assistant instead */
+.bpw-floating-button,
+#bp-widget-button,
+#bp-web-widget-launcher,
+[class*="bpw-floating-button"] { display: none !important; }
