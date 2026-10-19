@@ -27,8 +27,6 @@ const programs = [
 ];
 
 function Layout({children}) {
- const _bpLoaded=useRef(false);
- useEffect(()=>{if(_bpLoaded.current)return;_bpLoaded.current=true;const inj=document.createElement("script");inj.src="https://cdn.botpress.cloud/webchat/v5.0/inject.js";inj.async=false;inj.onload=()=>{const cfg=document.createElement("script");cfg.src="https://files.bpcontent.cloud/2026/10/18/07/20261018074645-J4551WID.js";cfg.defer=true;document.body.appendChild(cfg)};document.head.appendChild(inj)},[]);
   const location = useLocation();
   const [dd,setDd]=useState(null);
   const topbarRef=useRef(null);
@@ -60,6 +58,7 @@ function Layout({children}) {
     <div className="site-topbar-spacer"/>
     {children}
     <footer><div className="container"><div className="foot-grid"><div><Link className="brand" to="/"><img src={logo} alt=""/><span>ElectraPips</span></Link><p className="foot-p">Simulated prop trading programs built around clear rules, accessible pricing and different ways to trade.</p><Socials/></div><div><h4>Programs</h4><Link to="/challenges">2-Step Challenge</Link><Link to="/challenges">1-Step Challenge</Link><Link to="/challenges">Pay After Pass</Link><Link to="/challenges">Direct</Link></div><div><h4>Company</h4><Link to="/about">About</Link><Link to="/how-it-works">How It Works</Link><Link to="/leaderboard">Leaderboard</Link><Link to="/affiliate">Affiliate</Link></div><div><h4>Support</h4><Link to="/faq">FAQ</Link><Link to="/contact">Contact</Link><Link to="/legal/simulated">Legal</Link><Link to="/login">Login</Link><Link to="/start-challenge">Start Challenge</Link></div></div><div className="foot-bottom"><span>© {new Date().getFullYear()} ElectraPips. All rights reserved.</span><span>Simulated trading environment — not real-money brokerage accounts.</span><button type="button" className="cc-footer-btn" onClick={()=>window.dispatchEvent(new Event("ep:cookie-settings"))}>Cookie Settings</button></div></div></footer>
+    <Link className="chat-fab" to="/support" aria-label="Open support chat" title="Support chat"><MessageCircle size={26}/></Link>
   </>;
 }
 
