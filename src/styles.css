@@ -1550,3 +1550,9 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 #bp-widget-button,
 #bp-web-widget-launcher,
 [class*="bpw-floating-button"] { display: none !important; }
+
+/* Support popup: footer link */
+.fc-foot{padding:10px 16px;border-top:1px solid #16223c;text-align:center;font:600 13px var(--font);background:#070c18}
+.fc-foot a{color:#5aa2ff;text-decoration:none}
+.fc-foot a:hover{text-decoration:underline}
+.chat-fab.on{background:#0b1326;border:1px solid #1b2a4a;animation:none}
