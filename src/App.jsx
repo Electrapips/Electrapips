@@ -107,7 +107,7 @@ function SupportPopup(){
         <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Message…" rows={2} maxLength={2000} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(e)}}}/>
         <button className="fc-chat-send" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button>
       </form>
-    </div>}
+    </div>)}
 
     {tab==="help"&&<div className="fc-home">
       {!cat?<>
