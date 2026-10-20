@@ -27,12 +27,16 @@ const programs = [
 ];
 
 function SupportPopup(){
- const [open,setOpen]=useState(false),[uid,setUid]=useState(null),[ready,setReady]=useState(false);
- const [view,setView]=useState("list");const [convs,setConvs]=useState([]);const [active,setActive]=useState(null);
- const [msgs,setMsgs]=useState([]),[text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const [open,setOpen]=useState(false),[tab,setTab]=useState("home");
+ const [uid,setUid]=useState(null),[ready,setReady]=useState(false);
+ const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]),[view,setView]=useState("list");
+ const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
+ const [faqs,setFaqs]=useState([]),[q,setQ]=useState(""),[cat,setCat]=useState(null),[openFaq,setOpenFaq]=useState(null);
  const endRef=useRef(null);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
- // conversation list (own rows only)
+ // help articles (public FAQ content)
+ useEffect(()=>{if(!open||faqs.length)return;supabase.from("content_items").select("id,title,body,category").eq("type","faq").eq("status","published").order("title",{ascending:true}).then(({data})=>{if(data)setFaqs(data)})},[open]);
+ // conversations (own rows only)
  useEffect(()=>{if(!open||!uid)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(50);if(live&&data)setConvs(data)};
    load();const t=setInterval(load,5000);return()=>{live=false;clearInterval(t)}},[open,uid]);
@@ -40,9 +44,9 @@ function SupportPopup(){
  useEffect(()=>{if(!open||!uid||!active)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",active).order("created_at",{ascending:true}).limit(300);if(live&&data)setMsgs(data)};
    load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,active]);
- useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view]);
- const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("")};
- const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("")};
+ useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view,tab]);
+ const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("");setTab("messages")};
+ const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages")};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
    try{let id=active;
      if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
@@ -53,20 +57,34 @@ function SupportPopup(){
    setBusy(false)};
  const fmt=(iso)=>new Date(iso).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
  const current=convs.find(c=>c.id===active);
+ const cats=[...new Set(faqs.map(f=>f.category||"General"))];
+ const results=q.trim()?faqs.filter(f=>(f.title+" "+(f.body||"")).toLowerCase().includes(q.trim().toLowerCase())):faqs.slice(0,4);
+ const catItems=cat?faqs.filter(f=>(f.category||"General")===cat):[];
+ const Faq=({f})=>{const o=openFaq===f.id;return <div className="fc-faq"><button className="fc-faq-q" onClick={()=>setOpenFaq(o?null:f.id)} aria-expanded={o}><span>{f.title}</span><ChevronDown size={16} style={{transform:o?"rotate(180deg)":"none",transition:"transform .2s"}}/></button>{o&&<div className="fc-faq-a">{f.body}</div>}</div>};
  return <>
   {open&&<div className="fc-panel" role="dialog" aria-label="ElectraPips support">
-   <div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips Support</b><small>We usually reply in a few minutes</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>
+   <div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips</b><small>{tab==="help"?"Help center":tab==="messages"?"Messages":"Support"}</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>
    <div className="fc-body">
-    {!ready?null:!uid?<div className="fc-login">
+
+    {tab==="home"&&<div className="fc-home">
+      <div className="fc-hello"><span>ElectraPips Support</span><h3>Hi there 👋<br/>How can we help?</h3></div>
+      <button className="fc-card fc-chatcard" onClick={()=>{setTab("messages");setView(uid&&convs[0]?"list":"thread");if(!uid||!convs[0])newChat()}}><span><MessageCircle size={16}/> Chat with us</span><ArrowRight size={16}/></button>
+      <div className="fc-search"><Search size={16}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search for help"/></div>
+      <div className="fc-list-title">{q.trim()?"Results":"Popular articles"}</div>
+      {results.length===0&&<p className="fc-empty">No articles found. Chat with us and we will help you.</p>}
+      {results.map(f=><Faq key={f.id} f={f}/>)}
+    </div>}
+
+    {tab==="messages"&&(!ready?null:!uid?<div className="fc-login">
       <h3>Sign in to chat</h3><p>Your conversations are saved to your account, so you can continue any time.</p>
       <a className="btn btn-primary" style={{width:"100%",textAlign:"center"}} href="#/login" onClick={()=>setOpen(false)}>Sign in</a>
       <p className="fc-alt">No account? <a href="#/signup" onClick={()=>setOpen(false)}>Create one</a></p>
     </div>
     :view==="list"?<div className="fc-list">
       <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
-      <div className="fc-list-title">Your conversations</div>
-      {convs.length===0&&<p className="fc-empty">No conversations yet. Start a new chat.</p>}
-      {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status}</i></button>)}
+      {convs.length===0&&<div className="fc-nomsg"><MessageCircle size={28}/><b>No messages yet</b><p>Messages from the team will be shown here.</p><button className="btn btn-primary" onClick={newChat}>Chat with us</button></div>}
+      {convs.length>0&&<div className="fc-list-title">Your conversations</div>}
+      {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
     </div>
     :<div className="fc-thread">
       <div className="fc-thead"><button className="fc-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back">←</button><div><b>{current?.subject||"New chat"}</b><small>{current?"Conversation":"Send your first message"}</small></div></div>
@@ -75,10 +93,27 @@ function SupportPopup(){
         <div ref={endRef}/></div>
       {err&&<p className="fc-err">{err}</p>}
       <form className="fc-compose" onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>
+    </div>)}
+
+    {tab==="help"&&<div className="fc-home">
+      {!cat?<>
+        <div className="fc-hello"><span>Help center</span><h3>Browse by topic</h3></div>
+        {cats.length===0&&<p className="fc-empty">Help articles will appear here soon.</p>}
+        {cats.map(c=><button key={c} className="fc-card fc-collection" onClick={()=>{setCat(c);setOpenFaq(null)}}><span><LifeBuoy size={16}/> {c}</span><small>{faqs.filter(f=>(f.category||"General")===c).length} articles</small></button>)}
+      </>:<>
+        <button className="fc-back-row" onClick={()=>{setCat(null);setOpenFaq(null)}}>← All topics</button>
+        <div className="fc-hello"><span>Topic</span><h3>{cat}</h3></div>
+        {catItems.map(f=><Faq key={f.id} f={f}/>)}
+      </>}
     </div>}
    </div>
+   <nav className="fc-tabs">
+     <button className={tab==="home"?"on":""} onClick={()=>setTab("home")}><Layers size={18}/>Home</button>
+     <button className={tab==="messages"?"on":""} onClick={()=>{setTab("messages");setView("list")}}><MessageCircle size={18}/>Messages</button>
+     <button className={tab==="help"?"on":""} onClick={()=>{setTab("help");setCat(null)}}><LifeBuoy size={18}/>Help</button>
+   </nav>
   </div>}
-  <button type="button" className={"chat-fab"+(open?" on":"")} aria-label={open?"Close support chat":"Open support chat"} title="Support chat" onClick={()=>{setOpen(o=>!o);setView("list")}}>{open?<X size={24}/>:<MessageCircle size={26}/>}</button>
+  <button type="button" className={"chat-fab"+(open?" on":"")} aria-label={open?"Close support chat":"Open support chat"} title="Support chat" onClick={()=>{setOpen(o=>!o);setTab("home")}}>{open?<X size={24}/>:<MessageCircle size={26}/>}</button>
  </>}
 
 function Layout({children}) {
