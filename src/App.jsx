@@ -77,7 +77,6 @@ function SupportPopup(){
       <form className="fc-compose" onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>
     </div>}
    </div>
-   <div className="fc-foot"><a href="#/support" onClick={()=>setOpen(false)}>Open full support page →</a></div>
   </div>}
   <button type="button" className={"chat-fab"+(open?" on":"")} aria-label={open?"Close support chat":"Open support chat"} title="Support chat" onClick={()=>{setOpen(o=>!o);setView("list")}}>{open?<X size={24}/>:<MessageCircle size={26}/>}</button>
  </>}
