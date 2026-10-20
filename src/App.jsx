@@ -4,7 +4,7 @@ import { loadSiteData } from "./lib/loadSiteData";
 import CookieConsent from "./CookieConsent.jsx";
 import { supabase } from "./lib/supabaseClient";
 import { loadPortalData, buildView, EMPTY_VIEW } from "./lib/portalData";
-import {ShieldCheck,Layers,Target,Globe,Compass,TrendingUp,Zap,Check,X,Wallet,Clock,Repeat,ArrowRight,CreditCard,Rocket,Star,Info,RotateCcw,ChevronDown,MessageCircle,User,Search,Mail,Lock,Eye,EyeOff,Send,Trophy,UserPlus,Share2,LifeBuoy,Users,LayoutDashboard,Award,Gift,Copy,ArrowDownToLine,ArrowUpRight,ArrowDownRight,CheckCircle2,XCircle,Timer,Tag,LogOut,Bell,Download,QrCode,Percent,FileText,BarChart3,Settings,Upload,Phone,Globe2,Smartphone} from "lucide-react";
+import {ArrowLeft,ShieldCheck,Layers,Target,Globe,Compass,TrendingUp,Zap,Check,X,Wallet,Clock,Repeat,ArrowRight,CreditCard,Rocket,Star,Info,RotateCcw,ChevronDown,MessageCircle,User,Search,Mail,Lock,Eye,EyeOff,Send,Trophy,UserPlus,Share2,LifeBuoy,Users,LayoutDashboard,Award,Gift,Copy,ArrowDownToLine,ArrowUpRight,ArrowDownRight,CheckCircle2,XCircle,Timer,Tag,LogOut,Bell,Download,QrCode,Percent,FileText,BarChart3,Settings,Upload,Phone,Globe2,Smartphone} from "lucide-react";
 import { HashRouter, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
 import "./styles.css";
 import {siInstagram,siX,siYoutube,siTelegram,siFacebook,siTiktok,siDiscord,siWhatsapp} from "simple-icons";
@@ -88,7 +88,7 @@ function SupportPopup(){
     </div>
     :<div className="fc-chat">
       <div className="fc-chat-top">
-        <button className="fc-chat-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back">‹</button>
+        <button className="fc-chat-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back"><ArrowLeft size={18}/></button>
         <div className="fc-chat-avatars"><img src={logo} alt=""/></div>
         <b className="fc-chat-title">ElectraPips Support</b>
         <button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button>
@@ -121,11 +121,11 @@ function SupportPopup(){
       </>}
     </div>}
    </div>
-   <nav className="fc-tabs">
+   {!(tab==="messages"&&uid&&view==="thread") && (   <nav className="fc-tabs">
      <button className={tab==="home"?"on":""} onClick={()=>setTab("home")}><Layers size={18}/>Home</button>
      <button className={tab==="messages"?"on":""} onClick={()=>{setTab("messages");setView("list")}}><MessageCircle size={18}/>Messages</button>
      <button className={tab==="help"?"on":""} onClick={()=>{setTab("help");setCat(null)}}><LifeBuoy size={18}/>Help</button>
-   </nav>
+   </nav>)}
   </div>}
   <button type="button" className={"chat-fab"+(open?" on":"")} aria-label={open?"Close support chat":"Open support chat"} title="Support chat" onClick={()=>{setOpen(o=>!o);setTab("home")}}>{open?<X size={24}/>:<MessageCircle size={26}/>}</button>
  </>}
