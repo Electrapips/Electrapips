@@ -86,14 +86,28 @@ function SupportPopup(){
       {convs.length>0&&<div className="fc-list-title">Your conversations</div>}
       {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
     </div>
-    :<div className="fc-thread">
-      <div className="fc-thead"><button className="fc-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back">←</button><div><b>{current?.subject||"New chat"}</b><small>{current?"Conversation":"Send your first message"}</small></div></div>
-      <div className="fc-msgs">{msgs.length===0&&<p className="fc-empty">Hi 👋 Send us a message and our team will reply here.</p>}
-        {msgs.map(m=><div key={m.id} className={"fc-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}{m.body}<time>{fmt(m.created_at)}</time></div>)}
-        <div ref={endRef}/></div>
-      {err&&<p className="fc-err">{err}</p>}
-      <form className="fc-compose" onSubmit={send}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button></form>
-    </div>)}
+    :<div className="fc-chat">
+      <div className="fc-chat-top">
+        <button className="fc-chat-back" onClick={()=>{setView("list");setActive(null)}} aria-label="Back">‹</button>
+        <div className="fc-chat-avatars"><img src={logo} alt=""/></div>
+        <b className="fc-chat-title">ElectraPips Support</b>
+        <button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button>
+      </div>
+      <p className="fc-chat-sub">Ask us anything, or share your feedback.</p>
+      <div className="fc-chat-body">
+        <div className="fc-bub-team"><span>Welcome to ElectraPips!</span></div>
+        <div className="fc-bub-team fc-bub-long"><span>Hi{uid&&convs.length?"":""}, hope your day is going great so far. How can we help you today?</span><small>ElectraPips Team • Just now</small></div>
+        {msgs.map(m=>m.sender_type==="trader"
+          ? <div key={m.id} className="fc-bub-me"><span>{m.body}</span><small>{fmt(m.created_at)}</small></div>
+          : <div key={m.id} className="fc-bub-team"><span>{m.body}</span><small>{m.sender_type==="bot"?"ElectraPips Assistant":"ElectraPips Team"} • {fmt(m.created_at)}</small></div>)}
+        <div ref={endRef}/>
+      </div>
+      {err&&<p className="fc-err fc-chat-err">{err}</p>}
+      <form className="fc-chat-box" onSubmit={send}>
+        <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Message…" rows={2} maxLength={2000} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(e)}}}/>
+        <button className="fc-chat-send" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button>
+      </form>
+    </div>}
 
     {tab==="help"&&<div className="fc-home">
       {!cat?<>

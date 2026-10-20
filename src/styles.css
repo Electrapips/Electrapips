@@ -1586,3 +1586,26 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fc-nomsg{display:grid;justify-items:center;gap:8px;text-align:center;padding:30px 10px;color:#94a3b8}
 .fc-nomsg b{color:#fff;font:600 15px var(--font)}
 .fc-nomsg p{margin:0 0 6px;font-size:14px}
+
+/* ===== Support popup: chat view (like a modern live-chat window) ===== */
+.fc-chat{display:flex;flex-direction:column;height:100%;min-height:0;background:#0b1326}
+.fc-chat-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #16223c;background:#0b1326}
+.fc-chat-back{width:32px;height:32px;border-radius:10px;border:0;background:transparent;color:#94a3b8;font-size:22px;line-height:1;cursor:pointer}
+.fc-chat-back:hover{color:#fff}
+.fc-chat-avatars{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.fc-chat-avatars img{width:100%;height:100%;object-fit:contain;padding:4px}
+.fc-chat-title{flex:1;color:#fff;font:600 15px var(--font)}
+.fc-chat-sub{margin:0;padding:10px 14px 4px;text-align:center;color:#94a3b8;font-size:13px}
+.fc-chat-body{flex:1;min-height:0;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.fc-bub-team,.fc-bub-me{max-width:82%;display:flex;flex-direction:column;gap:4px}
+.fc-bub-team span,.fc-bub-me span{padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.fc-bub-team span{background:#0f1b38;border:1px solid #16223c;color:#e2e8f0;border-bottom-left-radius:4px}
+.fc-bub-me{align-self:flex-end;align-items:flex-end}
+.fc-bub-me span{background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;border-bottom-right-radius:4px}
+.fc-bub-team small,.fc-bub-me small{font-size:11px;color:#64748b;padding:0 4px}
+.fc-chat-box{display:flex;align-items:flex-end;gap:8px;margin:8px 12px 12px;padding:10px 10px 10px 14px;border:1px solid #1b2a4a;border-radius:16px;background:#0a1120}
+.fc-chat-box:focus-within{border-color:#2f7bff;box-shadow:0 0 0 3px rgba(47,123,255,.15)}
+.fc-chat-box textarea{flex:1;min-width:0;resize:none;border:0;background:transparent;color:#fff;font:inherit;font-size:14px;outline:none;max-height:110px}
+.fc-chat-send{width:38px;height:38px;flex:none;border-radius:12px;border:0;background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;display:grid;place-items:center;cursor:pointer}
+.fc-chat-send:disabled{opacity:.35;cursor:not-allowed}
+.fc-chat-err{margin:0 14px}
