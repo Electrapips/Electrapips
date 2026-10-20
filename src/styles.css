@@ -1556,3 +1556,18 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fc-foot a{color:#5aa2ff;text-decoration:none}
 .fc-foot a:hover{text-decoration:underline}
 .chat-fab.on{background:#0b1326;border:1px solid #1b2a4a;animation:none}
+
+/* ===== Support page: business layout ===== */
+.sp-wrap{padding-top:8px}
+.sp-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.sp-qcard{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:18px 20px;border-radius:16px;border:1px solid #16223c;background:#0a1120;color:#e2e8f0;text-decoration:none;transition:border-color .2s,transform .2s}
+.sp-qcard b{font:600 15px var(--font);color:#fff;grid-column:1}
+.sp-qcard span{font-size:13px;color:#94a3b8;grid-column:1}
+.sp-qcard svg{grid-row:1 / span 2;grid-column:2;color:#5aa2ff}
+.sp-qcard:hover{border-color:rgba(47,123,255,.5);transform:translateY(-2px)}
+.sp-side-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 4px 10px}
+.sp-side-head b{font:600 14px var(--font);color:#fff}
+.sp-form-head{margin-bottom:4px}
+.sp-form-head p{margin:6px 0 0;color:#94a3b8;font-size:14px;line-height:1.6}
+.sp-empty{color:#94a3b8;font-size:14px;line-height:1.6}
+@media(max-width:820px){.sp-quick{grid-template-columns:1fr}}

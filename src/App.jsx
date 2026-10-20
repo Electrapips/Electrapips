@@ -520,42 +520,53 @@ function Support(){
  const fmt=(iso)=>new Date(iso).toLocaleString("en-GB",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
  const current=convs.find(c=>c.id===active);
  return <>
-  <PageHero eyebrow="SUPPORT" title="How can we help?" text="Chat with the ElectraPips support team. Your conversations are saved here."/>
-  <section><div className="container">
-   {!ready?null:!uid?<div className="sp-signin pt-card"><h3>Sign in to chat with our team</h3><p>Your conversations are saved to your account, so you can return to them at any time.</p><div className="sp-row"><Link className="btn btn-primary" to="/login">Sign in <ArrowRight size={15}/></Link><Link className="btn btn-ghost" to="/signup">Create account</Link></div></div>
+  <PageHero eyebrow="SUPPORT" title="We're here to help" text="Ask about programs, rewards, trading rules or your account. Our team usually replies within 6 hours."/>
+  <section className="sp-wrap"><div className="container">
+   <div className="sp-quick">
+     <Link to="/faq" className="sp-qcard"><b>Browse FAQ</b><span>Quick answers to common questions</span><ArrowRight size={16}/></Link>
+     <Link to="/challenges" className="sp-qcard"><b>Programs &amp; pricing</b><span>Compare the four program models</span><ArrowRight size={16}/></Link>
+     <a href="mailto:support@electrapips.com" className="sp-qcard"><b>Email us</b><span>support@electrapips.com</span><ArrowRight size={16}/></a>
+   </div>
+
+   {!ready?null:!uid?<div className="sp-signin pt-card">
+     <h3>Sign in to message our team</h3>
+     <p>Your conversations are saved to your account, so you can follow up at any time and keep your full history in one place.</p>
+     <div className="sp-row"><Link className="btn btn-primary" to="/login">Sign in <ArrowRight size={15}/></Link><Link className="btn btn-ghost" to="/signup">Create account</Link></div>
+   </div>
    :<div className="sp-layout">
      <aside className="sp-side pt-card">
-       <button className="btn btn-primary sp-new" onClick={()=>{setMode("new");setActive(null);setErr("")}}>+ New chat</button>
-       <div className="sp-list-title">Your conversations</div>
-       {convs.length===0&&<p className="sp-empty">No conversations yet.</p>}
-       {convs.map(c=><button key={c.id} className={"sp-item"+(active===c.id?" on":"")} onClick={()=>openConv(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"sp-st "+c.status}>{c.status}</i></button>)}
+       <div className="sp-side-head"><b>Your conversations</b><button className="btn btn-primary sp-new" onClick={()=>{setMode("new");setActive(null);setErr("")}}>New chat</button></div>
+       {convs.length===0&&<p className="sp-empty">You have no conversations yet. Start a new chat to contact our team.</p>}
+       {convs.map(c=><button key={c.id} className={"sp-item"+(active===c.id?" on":"")} onClick={()=>openConv(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"sp-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
      </aside>
+
      <div className="sp-main pt-card">
        {mode==="new"&&<form className="sp-form" onSubmit={startNew}>
-         <h3>Start a new chat</h3>
+         <div className="sp-form-head"><h3>Start a new conversation</h3><p>Tell us a little about your question. We will reply to the email address you provide.</p></div>
          <div className="sp-grid2">
            <label className="pt-field">Full name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Your name"/></label>
            <label className="pt-field">Email<input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="you@example.com"/></label>
          </div>
          <label className="pt-field">Topic<select value={form.topic} onChange={e=>setForm({...form,topic:e.target.value})}>{TOPICS.map(t=><option key={t}>{t}</option>)}</select></label>
-         <label className="pt-field">Message<textarea rows={5} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Describe how we can help…" maxLength={2000}/></label>
+         <label className="pt-field">Message<textarea rows={5} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Describe your question or the issue you are facing…" maxLength={2000}/></label>
          {err&&<p className="sp-err">{err}</p>}
-         <button className="btn btn-primary" disabled={busy}>{busy?"Sending…":"Start chat"}</button>
+         <div className="sp-row"><button className="btn btn-primary" disabled={busy}>{busy?"Sending…":"Send message"}</button></div>
        </form>}
+
        {mode==="thread"&&current&&<>
-         <div className="sp-thead"><div><h3>{current.subject||"Support"}</h3><span className={"sp-st "+current.status}>{current.status}</span></div></div>
+         <div className="sp-thead"><div><h3>{current.subject||"Support"}</h3><span className={"sp-st "+current.status}>{current.status==="active"?"Open":current.status}</span></div></div>
          <div className="sp-msgs">{msgs.length===0&&<p className="sp-empty">Send a message to start the conversation.</p>}
            {msgs.map(m=><div key={m.id} className={"sp-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}<p>{m.body}</p><time>{fmt(m.created_at)}</time></div>)}
          </div>
          {err&&<p className="sp-err">{err}</p>}
          <form className="sp-compose" onSubmit={sendMsg}><input value={text} onChange={e=>setText(e.target.value)} placeholder="Type your message…" maxLength={2000}/><button className="btn btn-primary" disabled={busy||!text.trim()}>Send</button></form>
        </>}
-       {mode==="list"&&<div className="sp-welcome"><h3>Select a conversation</h3><p>Pick one from the list, or start a new chat.</p><button className="btn btn-primary" onClick={()=>{setMode("new");setActive(null)}}>+ New chat</button></div>}
+
+       {mode==="list"&&<div className="sp-welcome"><h3>Select a conversation</h3><p>Choose a conversation from the list to continue, or start a new one.</p><button className="btn btn-primary" onClick={()=>{setMode("new");setActive(null)}}>New chat</button></div>}
      </div>
    </div>}
   </div></section>
  </>}
-
 function Counter({to,pre="",suf="",dur=1800}){const [v,setV]=useState(0),ref=useRef(null);
  useEffect(()=>{const el=ref.current;if(!el)return;let raf,done=false;
   if(!("IntersectionObserver" in window)||window.matchMedia("(prefers-reduced-motion: reduce)").matches){setV(to);return}
