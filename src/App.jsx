@@ -1084,7 +1084,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
    setCBusy(true);
    const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{program_slug:SLUG_OF[program],size_amount:amountNum,name:cName.trim(),email:cEmail.trim()}});
    if(error||!data||!data.checkout_url){let m="";try{m=(await error.context.json()).error||""}catch(x){}setCErr(m||"Card payment could not be started. Please try again.");setCBusy(false);return}
-   window.location.href=data.checkout_url;
+   setPay({order_id:data.order_id,payment_url:data.payment_url,amount:data.amount});setStatus("pending");setCBusy(false);
  };
   const copyLink=()=>{try{navigator.clipboard.writeText(pay.payment_url);setCopied(true);setTimeout(()=>setCopied(false),1600)}catch(e){}};
  const discount=applied?applied.discount:0;
@@ -1131,7 +1131,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
      <button className={method==="crypto"?"on":""} onClick={()=>setMethod("crypto")}>Crypto (USDT)</button>
      <button className={method==="card"?"on":""} onClick={()=>setMethod("card")}>Card (Visa / Mastercard)</button>
     </div>
-    {method==="card"?<form className="pt-card co-pay" onSubmit={payCard}>
+    {method==="card"&&!pay?<form className="pt-card co-pay" onSubmit={payCard}>
      <div className="co-pay-head"><span className="co-pay-ico"><CreditCard size={18}/></span><div><b>Pay with card</b><small>Visa · Mastercard · Sifalo wallets</small></div></div>
      <p className="co-pay-text">Enter your details, then you will enter your card on the secure Sifalo payment page.</p>
      <label className="co-field">Name on card<input value={cName} onChange={e=>setCName(e.target.value)} placeholder="Full name" autoComplete="cc-name"/></label>
@@ -1142,7 +1142,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
      <p className="co-fine">Card details are entered on the Sifalo secure page, not on this site.</p>
     </form>:
     <div className="pt-card co-pay">
-     <div className="co-pay-head"><span className="co-pay-ico"><CreditCard size={18}/></span><div><b>Pay with crypto</b><small>USDT · via Paymos</small></div></div>
+     <div className="co-pay-head"><span className="co-pay-ico"><CreditCard size={18}/></span><div>{method==="card"?<><b>Pay with card</b><small>Visa · Mastercard · via Sifalo</small></>:<><b>Pay with crypto</b><small>USDT · via Paymos</small></>}</div></div>
      {!pay?<>
       <p className="co-pay-text">Click below to open the secure payment page. Choose USDT (TRC20) there and send the exact amount shown.</p>
       <div className="co-pay-amount"><span>Amount</span><strong>{ready?fmt(total):"—"}</strong></div>
@@ -1151,7 +1151,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
       <p className="co-fine">By paying you agree to the Terms and the Refund Policy.</p>
      </>:<>
       <div className="co-paid-box"><div className="co-pay-status"><span className={"pt-pill "+pillCls}>{pillTxt}</span></div>
-       {!paid&&<p className="co-pay-text">Complete the payment on the Paymos page. This page updates automatically.</p>}
+       {!paid&&<p className="co-pay-text">{method==="card"?"Complete the payment on the Sifalo secure page. This page updates automatically.":"Complete the payment on the Paymos page. This page updates automatically."}</p>}
        {paid&&<p className="co-pay-text">Payment confirmed. Your account will appear in My Accounts.</p>}
       </div>
       {pay.payment_url&&<a className="btn btn-primary co-pay-btn" href={pay.payment_url} target="_blank" rel="noreferrer">Open Payment Page <ArrowRight size={16}/></a>}
