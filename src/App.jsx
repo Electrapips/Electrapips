@@ -605,7 +605,7 @@ function Support(){
        </form>}
 
        {mode==="thread"&&current&&<>
-         <div className="sp-thead"><div><h3>{current.subject||"Support"}</h3><span className={"sp-st "+current.status}>{current.status==="active"?"Open":current.status}</span></div></div>
+         <div className="sp-thead"><div><h3>{convTitle(current.subject)}</h3><span className={"sp-st "+current.status}>{current.status==="active"?"Open":current.status}</span></div></div>
          <div className="sp-msgs">{msgs.length===0&&<p className="sp-empty">Send a message to start the conversation.</p>}
            {msgs.map(m=><div key={m.id} className={"sp-msg "+(m.sender_type==="trader"?"me":"team")}>{m.sender_type!=="trader"&&<small>ElectraPips Team</small>}<p>{m.body}</p><time>{fmt(m.created_at)}</time></div>)}
          </div>
