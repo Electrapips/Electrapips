@@ -1615,3 +1615,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fc-body-flush .fc-chat{flex:1;min-height:0;height:100%;border-radius:0}
 .fc-chat-top{padding:14px 16px}
 .fc-chat-box{margin:8px 14px 14px}
+
+/* Support chat: topic picker for a new conversation */
+.fc-topics{padding:10px 14px 4px;border-top:1px solid #16223c}
+.fc-topics span{display:block;color:#94a3b8;font-size:13px;margin-bottom:8px}
+.fc-topics div{display:flex;flex-wrap:wrap;gap:6px}
+.fc-topic{padding:7px 12px;border-radius:999px;border:1px solid #1b2a4a;background:#0a1120;color:#cbd5e1;font:600 12px var(--font);cursor:pointer}
+.fc-topic:hover{border-color:rgba(47,123,255,.5);color:#fff}
+.fc-topic.on{background:linear-gradient(135deg,#2563eb,#38bdf8);border-color:transparent;color:#fff}

@@ -26,12 +26,14 @@ const programs = [
   {name:"Direct", tag:"04 / DIRECT", size:"$5K — $100K", bullets:["No profit target","3.5% daily loss","7% max drawdown","1:50 leverage","Unlimited period"]}
 ];
 
+const TOPIC_LIST=["Programs & pricing","Payouts","Rewards","Trading rules","Refunds","Account / technical","Other"];
 function SupportPopup(){
  const [open,setOpen]=useState(false),[tab,setTab]=useState("home");
  const [uid,setUid]=useState(null),[ready,setReady]=useState(false);
  const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]),[view,setView]=useState("list");
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [faqs,setFaqs]=useState([]),[q,setQ]=useState(""),[cat,setCat]=useState(null),[openFaq,setOpenFaq]=useState(null);
+ const [topic,setTopic]=useState(null);
  const endRef=useRef(null);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
  // help articles (public FAQ content)
@@ -46,10 +48,10 @@ function SupportPopup(){
    load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,active]);
  useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view,tab]);
  const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("");setTab("messages")};
- const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages")};
+ const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages");setTopic(null)};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
    try{let id=active;
-     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Support request",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:topic||"Support request",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
      setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);if(m)setMsgs(m);
      const {data:cl}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(50);if(cl)setConvs(cl);
@@ -103,9 +105,10 @@ function SupportPopup(){
         <div ref={endRef}/>
       </div>
       {err&&<p className="fc-err fc-chat-err">{err}</p>}
+      {!active&&<div className="fc-topics"><span>What can we help you with?</span><div>{TOPIC_LIST.map(t=><button type="button" key={t} className={"fc-topic"+(topic===t?" on":"")} onClick={()=>setTopic(t)}>{t}</button>)}</div></div>}
       <form className="fc-chat-box" onSubmit={send}>
         <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Message…" rows={2} maxLength={2000} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(e)}}}/>
-        <button className="fc-chat-send" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button>
+        <button className="fc-chat-send" disabled={busy||!text.trim()||(!active&&!topic)} aria-label="Send"><Send size={16}/></button>
       </form>
     </div>)}
 
