@@ -396,7 +396,7 @@ function Login(){const [show,setShow]=useState(false);const [em,setEm]=useState(
 const COUNTRIES=["Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
 function Signup(){
  const [f,setF]=useState({first:"",last:"",email:"",country:"",password:"",agree:false});
- const [show,setShow]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState(""),[resent,setResent]=useState("");
+ const [show,setShow]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState(""),[resent,setResent]=useState(""),[code,setCode]=useState(""),[vbusy,setVbusy]=useState(false),[verr,setVerr]=useState("");
  const on=(k)=>(e)=>setF({...f,[k]:e.target.type==="checkbox"?e.target.checked:e.target.value});
  const pwOk=f.password.length>=6;
  const valid=f.first.trim()&&f.last.trim()&&/^\S+@\S+\.\S+$/.test(f.email.trim())&&f.country&&pwOk&&f.agree;
@@ -410,12 +410,25 @@ function Signup(){
    if(data&&data.session){window.location.hash="#/portal";return}
    setSent(email);
  };
+ const verifyCode=async(e)=>{e.preventDefault();setVerr("");const t=code.replace(/\s/g,"");
+   if(!/^\d{6}$/.test(t)){setVerr("Please enter the 6-digit code from your email.");return}
+   setVbusy(true);
+   const {data,error}=await supabase.auth.verifyOtp({email:sent,token:t,type:"signup"});
+   setVbusy(false);
+   if(error||!data||!data.session){setVerr(error?error.message:"Code is not valid. Please try again.");return}
+   window.location.hash="#/portal";
+ };
  const resend=async()=>{setResent("");const {error}=await supabase.auth.resend({type:"signup",email:sent});setResent(error?error.message:"Verification email sent again.")};
- if(sent)return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>VERIFY YOUR EMAIL</Eyebrow><h1>Almost <span className="hl">there.</span></h1><p>We sent a verification link to your email. Open it to activate your account, then sign in.</p></div>
-  <div className="login-card"><h3>Check your inbox</h3><p style={{color:"#94a3b8"}}>Verification sent to <b style={{color:"#fff"}}>{sent}</b>. Didn't get it? Check spam, or resend below.</p>
+ if(sent)return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>VERIFY YOUR EMAIL</Eyebrow><h1>Almost <span className="hl">there.</span></h1><p>Enter the 6-digit code we sent to your email to confirm your account.</p></div>
+  <div className="login-card"><h3>Enter your code</h3><p style={{color:"#94a3b8"}}>We sent a code to <b style={{color:"#fff"}}>{sent}</b>. It expires after a short time.</p>
+   <form onSubmit={verifyCode}>
+     <label>Verification code<span className="inp"><input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="123456" style={{letterSpacing:6,fontSize:20,textAlign:"center"}}/></span></label>
+     {verr&&<p style={{color:"#fb7185",fontSize:13}}>{verr}</p>}
+     <button className="btn btn-primary" style={{width:"100%",marginBottom:10}} disabled={vbusy||code.length!==6}>{vbusy?"Verifying…":"Verify email"}</button>
+   </form>
    {resent&&<p style={{color:"#4ade80",fontSize:13}}>{resent}</p>}
-   <button className="btn btn-ghost" style={{width:"100%",marginBottom:10}} onClick={resend}>Resend verification email</button>
-   <Link className="btn btn-primary" to="/login" style={{width:"100%",textAlign:"center"}}>Go to sign in</Link></div></div></section>;
+   <button className="btn btn-ghost" style={{width:"100%",marginBottom:10}} onClick={resend}>Send a new code</button>
+   <Link className="btn btn-ghost" to="/login" style={{width:"100%",textAlign:"center"}}>Back to sign in</Link></div></div></section>;
  return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>CREATE ACCOUNT</Eyebrow><h1>Start trading <span className="hl">with us.</span></h1><p>Create your free ElectraPips account. Your trader dashboard opens as soon as you verify your email.</p></div>
   <div className="login-card signup-card">
    <form onSubmit={submit} className="su-form">
