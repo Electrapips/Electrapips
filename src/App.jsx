@@ -94,7 +94,7 @@ function SupportPopup(){
  const Faq=({f})=>{const o=openFaq===f.id;return <div className="fc-faq"><button className="fc-faq-q" onClick={()=>setOpenFaq(o?null:f.id)} aria-expanded={o}><span>{f.title}</span><ChevronDown size={16} style={{transform:o?"rotate(180deg)":"none",transition:"transform .2s"}}/></button>{o&&<div className="fc-faq-a">{f.body}</div>}</div>};
  return <>
   {open&&<div className="fc-panel" role="dialog" aria-label="ElectraPips support">
-   {!(tab==="messages"&&uid&&view==="thread") && (<div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips</b><small>{tab==="help"?"Help center":tab==="messages"?"Messages":"Support"}</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>)}
+   {!(tab==="messages"&&(uid||guest)&&view==="thread") && (<div className="fc-head"><div className="fc-brand"><img src={logo} alt=""/><div><b>ElectraPips</b><small>{tab==="help"?"Help center":tab==="messages"?"Messages":"Support"}</small></div></div><button className="fc-x" aria-label="Close" onClick={()=>setOpen(false)}><X size={18}/></button></div>)}
    <div className={"fc-body"+((tab==="messages"&&uid&&view==="thread")?" fc-body-flush":"")}>
 
     {tab==="home"&&<div className="fc-home">
