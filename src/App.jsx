@@ -49,7 +49,7 @@ function SupportPopup(){
  const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages")};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
    try{let id=active;
-     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Website chat",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:"Support request",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
      setText("");const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);if(m)setMsgs(m);
      const {data:cl}=await supabase.from("support_conversations").select("id,subject,status,last_message_at,created_at").eq("trader_id",uid).order("last_message_at",{ascending:false}).limit(50);if(cl)setConvs(cl);
@@ -84,7 +84,7 @@ function SupportPopup(){
       <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
       {convs.length===0&&<div className="fc-nomsg"><MessageCircle size={28}/><b>No messages yet</b><p>Messages from the team will be shown here.</p><button className="btn btn-primary" onClick={newChat}>Chat with us</button></div>}
       {convs.length>0&&<div className="fc-list-title">Your conversations</div>}
-      {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
+      {convs.map(c=><button key={c.id} className="fc-conv" onClick={()=>openThread(c.id)}><b>{convTitle(c.subject)}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"fc-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
     </div>
     :<div className="fc-chat">
       <div className="fc-chat-top">
@@ -542,6 +542,8 @@ function Global(){const pts=[[Globe,"Accessible by design","Built to be accessib
  return <section className="light"><div className="container glb"><div><div className="mono-eye" style={{marginBottom:14}}>GLOBAL ACCESS</div><h2>Built for traders from <span className="hl">around the world.</span></h2><p className="glb-p">Simulated prop trading with clear rules, designed to be accessible to more traders.</p><ul className="glb-list">{pts.map(([I,t,d])=><li key={t}><I/><div><b>{t}</b><span>{d}</span></div></li>)}</ul></div>
  <svg viewBox="0 0 400 400" className="globe" aria-hidden="true"><defs><radialGradient id="gl" cx=".35" cy=".3"><stop offset="0" stopColor="#2f7bff" stopOpacity=".45"/><stop offset="1" stopColor="#0a1230" stopOpacity=".2"/></radialGradient></defs><circle cx="200" cy="200" r="170" fill="url(#gl)" stroke="#2f5bd0" strokeOpacity=".6"/>{[150,105,55].map(r=><ellipse key={r} cx="200" cy="200" rx={r} ry="170" fill="none" stroke="#5aa2ff" strokeOpacity=".28"/>)}{[-110,-55,0,55,110].map(y=><ellipse key={y} cx="200" cy={200+y} rx={Math.sqrt(170*170-y*y)} ry="14" fill="none" stroke="#5aa2ff" strokeOpacity=".22"/>)}{[[150,120],[240,150],[120,230],[280,260],[200,320],[210,95],[300,190]].map(([x,y],i)=><circle key={i} className="gd" style={{animationDelay:i*.35+"s"}} cx={x} cy={y} r="4.5" fill="#38bdf8"/>)}</svg></div></section>}
 
+const convTitle=(t)=>{const v=String(t||"").trim();return !v||v==="Website chat"||v==="Support"?"Support request":v};
+
 function Support(){
  const [uid,setUid]=useState(null),[ready,setReady]=useState(false);
  const [convs,setConvs]=useState([]),[active,setActive]=useState(null),[msgs,setMsgs]=useState([]);
@@ -586,7 +588,7 @@ function Support(){
      <aside className="sp-side pt-card">
        <div className="sp-side-head"><b>Your conversations</b><button className="btn btn-primary sp-new" onClick={()=>{setMode("new");setActive(null);setErr("")}}>New chat</button></div>
        {convs.length===0&&<p className="sp-empty">You have no conversations yet. Start a new chat to contact our team.</p>}
-       {convs.map(c=><button key={c.id} className={"sp-item"+(active===c.id?" on":"")} onClick={()=>openConv(c.id)}><b>{c.subject||"Support"}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"sp-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
+       {convs.map(c=><button key={c.id} className={"sp-item"+(active===c.id?" on":"")} onClick={()=>openConv(c.id)}><b>{convTitle(c.subject)}</b><span>{fmt(c.last_message_at||c.created_at)}</span><i className={"sp-st "+c.status}>{c.status==="active"?"Open":c.status}</i></button>)}
      </aside>
 
      <div className="sp-main pt-card">
