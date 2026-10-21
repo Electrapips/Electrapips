@@ -1077,7 +1077,16 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
    if(data&&data.error){setErr(toMsg(data.error));return}
    setPay(data);setStatus("pending")};
  useEffect(()=>{if(!pay)return;let live=true;const t=setInterval(async()=>{const {data}=await supabase.from("orders").select("status").eq("id",pay.order_id).maybeSingle();if(live&&data)setStatus(String(data.status||"pending").toLowerCase())},5000);return()=>{live=false;clearInterval(t)}},[pay]);
- const copyLink=()=>{try{navigator.clipboard.writeText(pay.payment_url);setCopied(true);setTimeout(()=>setCopied(false),1600)}catch(e){}};
+ const [method,setMethod]=useState("crypto");const [cName,setCName]=useState("");const [cEmail,setCEmail]=useState("");const [cBusy,setCBusy]=useState(false);const [cErr,setCErr]=useState("");
+ const payCard=async(e)=>{e.preventDefault();setCErr("");
+   if(cName.trim().length<2){setCErr("Please enter the name on the card.");return}
+   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cEmail.trim())){setCErr("Please enter a valid email address.");return}
+   setCBusy(true);
+   const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{program_slug:SLUG_OF[program],size_amount:amountNum,name:cName.trim(),email:cEmail.trim()}});
+   if(error||!data||!data.checkout_url){let m="";try{m=(await error.context.json()).error||""}catch(x){}setCErr(m||"Card payment could not be started. Please try again.");setCBusy(false);return}
+   window.location.href=data.checkout_url;
+ };
+  const copyLink=()=>{try{navigator.clipboard.writeText(pay.payment_url);setCopied(true);setTimeout(()=>setCopied(false),1600)}catch(e){}};
  const discount=applied?applied.discount:0;
  const total=applied?applied.total:listNum;
  const fmt=(n)=>"$"+Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1118,6 +1127,20 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
    </div>
 
    <div className="co-side">
+    <div className="co-method">
+     <button className={method==="crypto"?"on":""} onClick={()=>setMethod("crypto")}>Crypto (USDT)</button>
+     <button className={method==="card"?"on":""} onClick={()=>setMethod("card")}>Card (Visa / Mastercard)</button>
+    </div>
+    {method==="card"?<form className="pt-card co-pay" onSubmit={payCard}>
+     <div className="co-pay-head"><span className="co-pay-ico"><CreditCard size={18}/></span><div><b>Pay with card</b><small>Visa · Mastercard · Sifalo wallets</small></div></div>
+     <p className="co-pay-text">Enter your details, then you will enter your card on the secure Sifalo payment page.</p>
+     <label className="co-field">Name on card<input value={cName} onChange={e=>setCName(e.target.value)} placeholder="Full name" autoComplete="cc-name"/></label>
+     <label className="co-field">Email<input type="email" value={cEmail} onChange={e=>setCEmail(e.target.value)} placeholder="you@example.com" autoComplete="email"/></label>
+     <div className="co-pay-amount"><span>Amount</span><strong>{ready?fmt(total):"—"}</strong></div>
+     {cErr&&<p className="co-err">{cErr}</p>}
+     <button className="btn btn-primary co-pay-btn" disabled={cBusy||!ready}>{cBusy?"Connecting to Sifalo…":<>Pay {ready?fmt(total):""} by card <ArrowRight size={16}/></>}</button>
+     <p className="co-fine">Card details are entered on the Sifalo secure page, not on this site.</p>
+    </form>:
     <div className="pt-card co-pay">
      <div className="co-pay-head"><span className="co-pay-ico"><CreditCard size={18}/></span><div><b>Pay with crypto</b><small>USDT · via Paymos</small></div></div>
      {!pay?<>
@@ -1135,7 +1158,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
       {pay.payment_url&&<button className="btn btn-ghost co-copy" onClick={copyLink}><Copy size={14}/>{copied?"Link copied!":"Copy payment link"}</button>}
       <div className="co-pay-foot"><div><span>Order</span><b className="mono">{pay.order_id}</b></div><div><span>Amount</span><b>{fmt(pay.amount)}</b></div></div>
      </>}
-    </div>
+    </div>}
    </div>
   </div>
  </PortalShell>}

@@ -1631,3 +1631,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fc-prechat label{display:grid;gap:6px;font:600 13px var(--font);color:#cbd5e1}
 .fc-prechat input,.fc-prechat select,.fc-prechat textarea{width:100%;padding:11px 13px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:inherit;outline:none}
 .fc-prechat input:focus,.fc-prechat select:focus,.fc-prechat textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,123,255,.2)}
+
+/* Checkout: payment method choice */
+.co-method{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.co-method button{padding:12px;border-radius:14px;border:1px solid #1b2a4a;background:#0a1120;color:#cbd5e1;font:600 13px var(--font);cursor:pointer}
+.co-method button.on{border-color:#2f7bff;background:rgba(47,123,255,.12);color:#fff}
+.co-field{display:grid;gap:6px;font:600 13px var(--font);color:#cbd5e1;margin-bottom:12px}
+.co-field input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:inherit;outline:none}
+.co-field input:focus{border-color:#2f7bff;box-shadow:0 0 0 3px rgba(47,123,255,.2)}
