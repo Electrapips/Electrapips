@@ -48,6 +48,13 @@ function SupportPopup(){
    load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,active]);
  useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view,tab]);
  const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("");setTab("messages")};
+ const pickTopic=async(t)=>{if(!uid||busy)return;setBusy(true);setErr("");setTopic(t);
+   try{let id=active;
+     if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:t,status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
+     const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:t});if(me)throw me;
+     const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);if(m)setMsgs(m);
+   }catch(x){setErr("Could not send. Please try again.")}
+   setBusy(false)};
  const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages");setTopic(null)};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
    try{let id=active;
@@ -105,10 +112,10 @@ function SupportPopup(){
         <div ref={endRef}/>
       </div>
       {err&&<p className="fc-err fc-chat-err">{err}</p>}
-      {!active&&<div className="fc-topics"><span>What can we help you with?</span><div>{TOPIC_LIST.map(t=><button type="button" key={t} className={"fc-topic"+(topic===t?" on":"")} onClick={()=>setTopic(t)}>{t}</button>)}</div></div>}
+      {(!active||!msgs.some(m=>m.sender_type==="trader"&&TOPIC_LIST.includes(m.body)))&&<div className="fc-topics"><span>What can we help you with?</span><div>{TOPIC_LIST.map(t=><button type="button" key={t} className={"fc-topic"+(topic===t?" on":"")} onClick={()=>pickTopic(t)}>{t}</button>)}</div></div>}
       <form className="fc-chat-box" onSubmit={send}>
         <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Message…" rows={2} maxLength={2000} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(e)}}}/>
-        <button className="fc-chat-send" disabled={busy||!text.trim()||(!active&&!topic)} aria-label="Send"><Send size={16}/></button>
+        <button className="fc-chat-send" disabled={busy||!text.trim()} aria-label="Send"><Send size={16}/></button>
       </form>
     </div>)}
 
