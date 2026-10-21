@@ -115,7 +115,6 @@ function SupportPopup(){
       <label>Message<textarea rows={3} value={gf.body} onChange={e=>setGf({...gf,body:e.target.value})} placeholder="How can we help?" maxLength={2000}/></label>
       {err&&<p className="fc-err">{err}</p>}
       <button className="btn btn-primary" style={{width:"100%"}} disabled={busy}>{busy?"Sending…":"Start chat"}</button>
-      <p className="fc-alt">Already have an account? <a href="#/login" onClick={()=>setOpen(false)}>Sign in</a></p>
     </form>
     :view==="list"&&uid?<div className="fc-list">
       <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
