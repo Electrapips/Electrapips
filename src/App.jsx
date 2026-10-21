@@ -34,6 +34,7 @@ function SupportPopup(){
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [faqs,setFaqs]=useState([]),[q,setQ]=useState(""),[cat,setCat]=useState(null),[openFaq,setOpenFaq]=useState(null);
  const [topic,setTopic]=useState(null);
+ const [guest,setGuest]=useState(()=>{try{return JSON.parse(localStorage.getItem("ep_guest_chat")||"null")}catch{return null}});
  const [gf,setGf]=useState({name:"",email:"",topic:"General question",body:""});
  const endRef=useRef(null);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
@@ -47,9 +48,14 @@ function SupportPopup(){
  useEffect(()=>{if(!open||!uid||!active)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",active).order("created_at",{ascending:true}).limit(300);if(live&&data)setMsgs(data)};
    load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,active]);
+ useEffect(()=>{if(!open||uid||!guest)return;let live=true;
+   const load=async()=>{const {data}=await supabase.functions.invoke("guest-chat",{body:{action:"list",conversation_id:guest.cid,guest_token:guest.token}});if(live&&data&&data.messages)setMsgs(data.messages)};
+   load();const t=setInterval(load,3000);return()=>{live=false;clearInterval(t)}},[open,uid,guest]);
  useEffect(()=>{endRef.current&&endRef.current.scrollIntoView({block:"end"})},[msgs,view,tab]);
  const openThread=(id)=>{setActive(id);setMsgs([]);setView("thread");setErr("");setTab("messages")};
- const pickTopic=async(t)=>{if(!uid||busy)return;setBusy(true);setErr("");setTopic(t);
+ const pickTopic=async(t)=>{if(busy)return;setBusy(true);setErr("");setTopic(t);
+   if(!uid&&guest){try{const {data,error}=await supabase.functions.invoke("guest-chat",{body:{action:"send",conversation_id:guest.cid,guest_token:guest.token,body:t}});if(error||!data||!data.messages)throw new Error("x");setMsgs(data.messages)}catch(x){setErr("Could not send. Please try again.")}setBusy(false);return}
+   if(!uid)return setBusy(false);
    try{let id=active;
      if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:t,status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:t});if(me)throw me;
@@ -62,19 +68,17 @@ function SupportPopup(){
    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){setErr("Please enter a valid email address.");return}
    if(bd.length<2){setErr("Please write your message.");return}
    setBusy(true);
-   try{
-     const {data:sess,error:se}=await supabase.auth.signInAnonymously({options:{data:{full_name:nm,email:em}}});
-     if(se||!sess||!sess.user)throw new Error("guest");
-     const gid=sess.user.id;
-     const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:gid,subject:gf.topic,status:"active",contact_name:nm,contact_email:em}).select("id").single();
-     if(ce)throw ce;
-     const {error:me}=await supabase.from("support_messages").insert({conversation_id:c.id,sender_id:gid,sender_type:"trader",body:bd});
-     if(me)throw me;
-     setUid(gid);setActive(c.id);setView("thread");setTab("messages");setGf({name:"",email:"",topic:"General question",body:""});
-   }catch(x){setErr("Chat is not available right now. Please email support@electrapips.com.")}
+   try{const {data,error}=await supabase.functions.invoke("guest-chat",{body:{action:"start",name:nm,email:em,topic:gf.topic,body:bd}});
+     if(error||!data||!data.conversation_id){let m="";try{m=(await error.context.json()).error||""}catch(x){}throw new Error(m||"x")}
+     const g={cid:data.conversation_id,token:data.guest_token};
+     localStorage.setItem("ep_guest_chat",JSON.stringify(g));setGuest(g);setActive(g.cid);setMsgs(data.messages||[]);
+     setView("thread");setTab("messages");setGf({name:"",email:"",topic:"General question",body:""});
+   }catch(x){setErr(x.message&&x.message!=="x"?x.message:"Chat is not available right now. Please email support@electrapips.com.")}
    setBusy(false)};
  const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages");setTopic(null)};
- const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
+ const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||(!uid&&!guest)||busy)return;
+   if(!uid&&guest){setBusy(true);setErr("");try{const {data,error}=await supabase.functions.invoke("guest-chat",{body:{action:"send",conversation_id:guest.cid,guest_token:guest.token,body:v}});if(error||!data||!data.messages)throw new Error("x");setText("");setMsgs(data.messages)}catch(x){setErr("Message could not be sent. Please try again.")}setBusy(false);return}
+   setBusy(true);setErr("");
    try{let id=active;
      if(!id){const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:uid,subject:topic||"Support request",status:"active"}).select("id").single();if(ce)throw ce;id=c.id;setActive(id)}
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:v});if(me)throw me;
@@ -102,7 +106,7 @@ function SupportPopup(){
       {results.map(f=><Faq key={f.id} f={f}/>)}
     </div>}
 
-    {tab==="messages"&&(!ready?null:!uid?<form className="fc-prechat" onSubmit={guestStart}>
+    {tab==="messages"&&(!ready?null:!uid&&!guest?<form className="fc-prechat" onSubmit={guestStart}>
       <h3>Start a conversation</h3>
       <p>Tell us who you are, and our team will reply to your email.</p>
       <label>Full name<input value={gf.name} onChange={e=>setGf({...gf,name:e.target.value})} placeholder="Your name" autoComplete="name"/></label>
@@ -113,7 +117,7 @@ function SupportPopup(){
       <button className="btn btn-primary" style={{width:"100%"}} disabled={busy}>{busy?"Sending…":"Start chat"}</button>
       <p className="fc-alt">Already have an account? <a href="#/login" onClick={()=>setOpen(false)}>Sign in</a></p>
     </form>
-    :view==="list"?<div className="fc-list">
+    :view==="list"&&uid?<div className="fc-list">
       <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
       {convs.length===0&&<div className="fc-nomsg"><MessageCircle size={28}/><b>No messages yet</b><p>Messages from the team will be shown here.</p><button className="btn btn-primary" onClick={newChat}>Chat with us</button></div>}
       {convs.length>0&&<div className="fc-list-title">Your conversations</div>}
