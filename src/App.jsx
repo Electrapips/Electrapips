@@ -351,25 +351,38 @@ const SPECS=[
 ];
 function FullSpecs(){return <section><div className="container"><div className="section-head center-head"><div className="mono-eye">PROGRAM SPECIFICATIONS</div><h2>Trader Reward Share <span className="hl">& program details.</span></h2><p>Daily Loss resets at 00:00 server time. Drawdown is static and based on the starting balance on every program.</p></div><div className="specs">{(SPECS||[]).map(([n,rows])=>{const f=INFO[n]||{};return <div className="spec-card" key={n} style={vars(f)}><h3>{n}</h3><ul>{(rows||[]).map(([l,v])=><li key={l}><span>{l}</span><b>{v}</b></li>)}</ul></div>})}</div></div></section>}
 function ForgotPassword(){
- const [email,setEmail]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState("");
+ const [email,setEmail]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[sent,setSent]=useState(""),[code,setCode]=useState(""),[resent,setResent]=useState("");
  const send=async(e)=>{e.preventDefault();setErr("");const v=email.trim();if(!/^\S+@\S+\.\S+$/.test(v)){setErr("Please enter a valid email address.");return}
    setBusy(true);
    const {error}=await supabase.auth.resetPasswordForEmail(v,{redirectTo:window.location.origin+"/?type=recovery"});
    setBusy(false);
    if(error){setErr(error.message);return}
    setSent(v)};
- return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>ACCOUNT RECOVERY</Eyebrow><h1>Reset your <span className="hl">password.</span></h1><p>Enter the email you registered with. We will send you a secure link to choose a new password.</p></div>
+ const resendCode=async()=>{setResent("");const {error}=await supabase.auth.resetPasswordForEmail(sent);setResent(error?error.message:"A new code was sent.")};
+ const verifyRecovery=async(e)=>{e.preventDefault();setErr("");const t=code.replace(/\s/g,"");
+   if(!/^\d{6}$/.test(t)){setErr("Please enter the 6-digit code from your email.");return}
+   setBusy(true);
+   const {data,error}=await supabase.auth.verifyOtp({email:sent,token:t,type:"recovery"});
+   setBusy(false);
+   if(error||!data||!data.session){setErr(error?error.message:"Code is not valid. Please try again.");return}
+   window.location.hash="#/reset-password";
+ };
+ return <section className="auth"><div className="container auth-grid"><div className="auth-side"><Eyebrow>ACCOUNT RECOVERY</Eyebrow><h1>Reset your <span className="hl">password.</span></h1><p>Enter the email you registered with. We will send a 6-digit code to your email so you can choose a new password.</p></div>
   <div className="login-card">
-   {sent?<div>
-     <h3>Check your email</h3>
-     <p style={{color:"#94a3b8"}}>If an account exists for <b style={{color:"#fff"}}>{sent}</b>, a password reset link has been sent. The link expires after a short time.</p>
-     <p style={{color:"#94a3b8",fontSize:13}}>Didn't get it? Check your spam folder, or <button type="button" onClick={()=>setSent("")} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,cursor:"pointer",padding:0}}>try another email</button>.</p>
-     <Link className="btn btn-ghost" to="/login" style={{width:"100%",textAlign:"center"}}>Back to sign in</Link>
-   </div>
+   {sent?<form onSubmit={verifyRecovery}>
+     <h3>Enter your code</h3>
+     <p style={{color:"#94a3b8"}}>We sent a 6-digit code to <b style={{color:"#fff"}}>{sent}</b>. Enter it below to continue.</p>
+     <label>Reset code<span className="inp"><input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="123456" style={{letterSpacing:6,fontSize:20,textAlign:"center"}}/></span></label>
+     {err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}
+     <button className="btn btn-primary" style={{width:"100%",marginBottom:10}} disabled={busy||code.length!==6}>{busy?"Verifying…":"Verify code"}</button>
+     {resent&&<p style={{color:"#4ade80",fontSize:13}}>{resent}</p>}
+     <button type="button" className="btn btn-ghost" style={{width:"100%",marginBottom:10}} onClick={resendCode}>Send a new code</button>
+     <p style={{textAlign:"center",marginTop:14}}><button type="button" onClick={()=>{setSent("");setCode("");setErr("")}} style={{background:"none",border:0,color:"#5aa2ff",fontWeight:600,cursor:"pointer",padding:0}}>Use a different email</button></p>
+   </form>
    :<form onSubmit={send}>
      <label>Email<span className="inp"><Mail size={16}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email"/></span></label>
      {err&&<p style={{color:"#fb7185",fontSize:13}}>{err}</p>}
-     <button className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!email.trim()}>{busy?"Sending…":"Send reset link"}</button>
+     <button className="btn btn-primary" style={{width:"100%",textAlign:"center"}} disabled={busy||!email.trim()}>{busy?"Sending…":"Send code"}</button>
      <p style={{textAlign:"center",marginTop:14}}><Link to="/login" style={{color:"#5aa2ff",fontWeight:600}}>Back to sign in</Link></p>
    </form>}
   </div></div></section>}
