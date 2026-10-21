@@ -34,6 +34,7 @@ function SupportPopup(){
  const [text,setText]=useState(""),[busy,setBusy]=useState(false),[err,setErr]=useState("");
  const [faqs,setFaqs]=useState([]),[q,setQ]=useState(""),[cat,setCat]=useState(null),[openFaq,setOpenFaq]=useState(null);
  const [topic,setTopic]=useState(null);
+ const [gf,setGf]=useState({name:"",email:"",topic:"General question",body:""});
  const endRef=useRef(null);
  useEffect(()=>{supabase.auth.getUser().then(({data})=>{setUid(data?.user?.id||null);setReady(true)});const {data:sub}=supabase.auth.onAuthStateChange((_e,s)=>setUid(s?.user?.id||null));return()=>sub?.subscription?.unsubscribe()},[]);
  // help articles (public FAQ content)
@@ -54,6 +55,23 @@ function SupportPopup(){
      const {error:me}=await supabase.from("support_messages").insert({conversation_id:id,sender_id:uid,sender_type:"trader",body:t});if(me)throw me;
      const {data:m}=await supabase.from("support_messages").select("id,sender_type,body,created_at").eq("conversation_id",id).order("created_at",{ascending:true}).limit(300);if(m)setMsgs(m);
    }catch(x){setErr("Could not send. Please try again.")}
+   setBusy(false)};
+ const guestStart=async(e)=>{e.preventDefault();setErr("");
+   const nm=gf.name.trim(),em=gf.email.trim(),bd=gf.body.trim();
+   if(nm.length<2){setErr("Please enter your name.");return}
+   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){setErr("Please enter a valid email address.");return}
+   if(bd.length<2){setErr("Please write your message.");return}
+   setBusy(true);
+   try{
+     const {data:sess,error:se}=await supabase.auth.signInAnonymously({options:{data:{full_name:nm,email:em}}});
+     if(se||!sess||!sess.user)throw new Error("guest");
+     const gid=sess.user.id;
+     const {data:c,error:ce}=await supabase.from("support_conversations").insert({trader_id:gid,subject:gf.topic,status:"active",contact_name:nm,contact_email:em}).select("id").single();
+     if(ce)throw ce;
+     const {error:me}=await supabase.from("support_messages").insert({conversation_id:c.id,sender_id:gid,sender_type:"trader",body:bd});
+     if(me)throw me;
+     setUid(gid);setActive(c.id);setView("thread");setTab("messages");setGf({name:"",email:"",topic:"General question",body:""});
+   }catch(x){setErr("Chat is not available right now. Please email support@electrapips.com.")}
    setBusy(false)};
  const newChat=()=>{setActive(null);setMsgs([]);setView("thread");setErr("");setTab("messages");setTopic(null)};
  const send=async(e)=>{e.preventDefault();const v=text.trim();if(!v||!uid||busy)return;setBusy(true);setErr("");
@@ -84,11 +102,17 @@ function SupportPopup(){
       {results.map(f=><Faq key={f.id} f={f}/>)}
     </div>}
 
-    {tab==="messages"&&(!ready?null:!uid?<div className="fc-login">
-      <h3>Sign in to chat</h3><p>Your conversations are saved to your account, so you can continue any time.</p>
-      <a className="btn btn-primary" style={{width:"100%",textAlign:"center"}} href="#/login" onClick={()=>setOpen(false)}>Sign in</a>
-      <p className="fc-alt">No account? <a href="#/signup" onClick={()=>setOpen(false)}>Create one</a></p>
-    </div>
+    {tab==="messages"&&(!ready?null:!uid?<form className="fc-prechat" onSubmit={guestStart}>
+      <h3>Start a conversation</h3>
+      <p>Tell us who you are, and our team will reply to your email.</p>
+      <label>Full name<input value={gf.name} onChange={e=>setGf({...gf,name:e.target.value})} placeholder="Your name" autoComplete="name"/></label>
+      <label>Email<input type="email" value={gf.email} onChange={e=>setGf({...gf,email:e.target.value})} placeholder="you@example.com" autoComplete="email"/></label>
+      <label>Topic<select value={gf.topic} onChange={e=>setGf({...gf,topic:e.target.value})}>{TOPIC_LIST.map(t=><option key={t}>{t}</option>)}</select></label>
+      <label>Message<textarea rows={3} value={gf.body} onChange={e=>setGf({...gf,body:e.target.value})} placeholder="How can we help?" maxLength={2000}/></label>
+      {err&&<p className="fc-err">{err}</p>}
+      <button className="btn btn-primary" style={{width:"100%"}} disabled={busy}>{busy?"Sending…":"Start chat"}</button>
+      <p className="fc-alt">Already have an account? <a href="#/login" onClick={()=>setOpen(false)}>Sign in</a></p>
+    </form>
     :view==="list"?<div className="fc-list">
       <button className="btn btn-primary fc-newbtn" onClick={newChat}>+ New chat</button>
       {convs.length===0&&<div className="fc-nomsg"><MessageCircle size={28}/><b>No messages yet</b><p>Messages from the team will be shown here.</p><button className="btn btn-primary" onClick={newChat}>Chat with us</button></div>}
