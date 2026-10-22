@@ -1082,7 +1082,7 @@ function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(l
    if(cName.trim().length<2){setCErr("Please enter the name on the card.");return}
    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cEmail.trim())){setCErr("Please enter a valid email address.");return}
    setCBusy(true);
-   const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{program_slug:SLUG_OF[program],size_amount:amountNum,promo_code:applied?code:"",name:cName.trim(),email:cEmail.trim()}});
+   const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{program_slug:SLUG_OF[program],size_amount:amountNum,promo_code:String(code||"").trim().toUpperCase(),name:cName.trim(),email:cEmail.trim()}});
    if(error||!data||!data.payment_url){let m="";let st="";try{st=String(error.context.status);const t=await error.context.text();try{m=JSON.parse(t).error||t}catch(x){m=t}}catch(x){}
      setCErr((m?m.slice(0,300):"No details returned")+(st?" [HTTP "+st+"]":""));setCBusy(false);return}
    setPay({order_id:data.order_id,payment_url:data.payment_url,amount:data.amount});setStatus("pending");setCBusy(false);
