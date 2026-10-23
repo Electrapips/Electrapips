@@ -1647,3 +1647,50 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fee-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #16223c;color:#94a3b8;font-size:14px}
 .fee-row b{color:#fff;font:600 15px var(--font)}
 .fee-closed{color:#fb7185!important}
+
+/* ===== Performance fee page ===== */
+.fee-wrap{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:start}
+.fee-main{display:grid;gap:14px}
+.fee-timer{display:grid;gap:14px;background:linear-gradient(135deg,#0c1a36,#0a1120)!important;border-color:rgba(47,123,255,.35)!important}
+.fee-timer-top{display:flex;gap:12px;align-items:center}
+.fee-timer-top b{display:block;color:#fff;font:600 15px var(--font)}
+.fee-timer-top small{color:#94a3b8;font-size:12px}
+.fee-ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(47,123,255,.15);color:#5aa2ff;flex:none}
+.fee-digits{display:flex;gap:10px;align-items:baseline;font:700 40px var(--display);color:#fff;letter-spacing:.5px}
+.fee-digits span{display:flex;align-items:baseline;gap:2px}
+.fee-digits em{font:600 14px var(--font);color:#94a3b8;font-style:normal;margin-right:8px}
+.fee-digits.is-closed .fee-closed-txt{color:#fb7185;font-size:24px}
+.fee-bar{height:8px;border-radius:999px;background:#0f1b38;overflow:hidden}
+.fee-bar i{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#38bdf8);border-radius:999px;transition:width 1s linear}
+.fee-card{display:grid;gap:12px}
+.fee-card-head{display:flex;align-items:center;gap:12px}
+.fee-card-head b{display:block;color:#fff;font:600 15px var(--font)}
+.fee-card-head small{color:#94a3b8;font-size:12px}
+.fee-acc-no{margin-left:auto;font:600 13px var(--mono);color:#cbd5e1;background:#0f1b38;padding:6px 10px;border-radius:10px}
+.fee-line{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #16223c;color:#94a3b8;font-size:14px}
+.fee-line b{color:#fff;font:600 15px var(--font)}
+.fee-line em{font-style:normal;color:#4ade80;font-size:12px;margin-left:6px}
+.fee-line.is-disc b{color:#4ade80}
+.fee-total{border-bottom:0;padding-top:14px}
+.fee-total b{font-size:20px}
+.fee-promo{display:grid;grid-template-columns:1fr auto;gap:10px}
+.fee-promo input{padding:12px 14px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:600 14px var(--mono);letter-spacing:1px;outline:none}
+.fee-promo input:focus{border-color:#2f7bff;box-shadow:0 0 0 3px rgba(47,123,255,.2)}
+.fee-promo-msg{margin:0;font-size:13px}
+.fee-promo-msg.is-bad{color:#fb7185}
+.fee-promo-msg.is-ok{color:#4ade80}
+.fee-side{position:sticky;top:90px}
+.fee-pay{display:grid;gap:14px}
+.fee-pay h3{margin:0;color:#fff;font:700 18px var(--display)}
+.fee-amt{margin:0;font:700 42px var(--display);color:#fff}
+.fee-amt small{font:600 13px var(--font);color:#94a3b8;margin-left:8px}
+.fee-pay-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:14px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:600 15px var(--font);cursor:pointer;text-align:left}
+.fee-pay-btn.card{background:linear-gradient(135deg,#2563eb,#38bdf8);border-color:transparent}
+.fee-pay-btn span:nth-child(2){flex:1}
+.fee-pay-btn:disabled{opacity:.45;cursor:not-allowed}
+.fee-pay-btn.crypto small{font:600 11px var(--font);color:#94a3b8;background:#0f1b38;padding:4px 8px;border-radius:999px}
+.fee-pay-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.12)}
+.fee-trust{list-style:none;padding:0;margin:0;display:grid;gap:8px;color:#94a3b8;font-size:12px}
+.fee-trust li{display:flex;gap:8px;align-items:flex-start}
+.fee-trust svg{flex:none;margin-top:2px;color:#4ade80}
+@media(max-width:900px){.fee-wrap{grid-template-columns:1fr}.fee-side{position:static}}

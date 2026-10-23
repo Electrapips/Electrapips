@@ -1062,7 +1062,9 @@ function PortalChallenges(){const [step,setStep]=useState(1);const [prog,setProg
 
 const SLUG_OF={"2-Step Challenge":"2-step","1-Step Challenge":"1-step","Pay After Pass":"pay-after-pass","Direct":"direct","2-Step Sprint Challenge":"2-step-sprint"};
 function PortalFeePay({accountId}){
- const [acc,setAcc]=useState(null),[fee,setFee]=useState(null),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[now,setNow]=useState(Date.now());
+ const [acc,setAcc]=useState(null),[fee,setFee]=useState(null),[now,setNow]=useState(Date.now());
+ const [code,setCode]=useState(""),[applied,setApplied]=useState(null),[promoMsg,setPromoMsg]=useState(""),[checking,setChecking]=useState(false);
+ const [busy,setBusy]=useState(false),[err,setErr]=useState("");
  useEffect(()=>{let live=true;(async()=>{
    const {data:a}=await supabase.from("trading_accounts").select("id,account_number,status,fee_due_at,program_id,size_id,programs(name),account_sizes(amount)").eq("id",accountId).maybeSingle();
    if(!live)return;setAcc(a||false);
@@ -1070,24 +1072,77 @@ function PortalFeePay({accountId}){
  })();return()=>{live=false}},[accountId]);
  useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t)},[]);
  const left=acc&&acc.fee_due_at?new Date(acc.fee_due_at).getTime()-now:0;
- const fmtLeft=(ms)=>{if(ms<=0)return "0h 0m 0s";const t=Math.floor(ms/1000);return Math.floor(t/3600)+"h "+Math.floor(t%3600/60)+"m "+(t%60)+"s"};
  const open=!!acc&&acc.status==="awaiting_fee"&&left>0;
+ const total=applied?applied.total:fee;
+ const pct=Math.max(0,Math.min(100,(left/(72*3600*1000))*100));
+ const fmtLeft=(ms)=>{if(ms<=0)return {h:"00",m:"00",s:"00"};const t=Math.floor(ms/1000);const p=(n)=>String(n).padStart(2,"0");return {h:p(Math.floor(t/3600)),m:p(Math.floor(t%3600/60)),s:p(t%60)}};
+ const tl=fmtLeft(left);
+ // every server call has a timeout, so the page never waits forever
+ const call=(name,body)=>Promise.race([
+   supabase.functions.invoke(name,{body}),
+   new Promise((_,rej)=>setTimeout(()=>rej(new Error("The payment service is not responding. Please try again.")),30000))]);
+ const readErr=async(error,fallback)=>{let m="";try{m=(await error.context.json()).error||""}catch(x){}return m||fallback};
+ const applyCode=async()=>{setPromoMsg("");setChecking(true);
+   try{const {data,error}=await call("sifalo-checkout",{fee_account_id:accountId,action:"preview",promo_code:code});
+     if(error){setApplied(null);setPromoMsg(await readErr(error,"This discount code is not valid."))}
+     else if(data&&data.valid){setApplied(data);setPromoMsg("")}
+     else{setApplied(null);setPromoMsg((data&&data.error)||"This discount code is not valid.")}
+   }catch(x){setApplied(null);setPromoMsg(x.message)}
+   setChecking(false)};
  const payCard=async()=>{setErr("");setBusy(true);
-   const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{fee_account_id:accountId}});
-   if(error||!data||!data.payment_url){let m="";try{m=(await error.context.json()).error||""}catch(x){}setErr(m||"Could not start the payment. Please try again.");setBusy(false);return}
-   window.location.href=data.payment_url};
+   try{const {data,error}=await call("sifalo-checkout",{fee_account_id:accountId,promo_code:applied?code:""});
+     if(error||!data||!data.payment_url){setErr(error?await readErr(error,"Could not start the payment. Please try again."):(data&&data.error)||"Could not start the payment. Please try again.");setBusy(false);return}
+     window.location.href=data.payment_url;
+   }catch(x){setErr(x.message);setBusy(false)}};
  if(acc===null)return <PortalShell active="/portal/accounts"><NoData text="Loading…"/></PortalShell>;
  if(acc===false)return <PortalShell active="/portal/accounts"><NoData text="Account not found."/></PortalShell>;
- return <PortalShell active="/portal/accounts"><PtHead title="Performance fee" text="Pay the fee to open your Performance account."/>
-   <div className="pt-card fee-page">
-     <div className="fee-row"><span>Account</span><b>{acc.account_number}</b></div>
-     <div className="fee-row"><span>Program</span><b>{acc.programs?.name||"-"} · ${acc.account_sizes?.amount||"-"}</b></div>
-     <div className="fee-row"><span>Performance fee</span><b>{fee!=null?"$"+fee.toFixed(2):"-"}</b></div>
-     <div className="fee-row"><span>Time left to pay</span><b className={open?"":"fee-closed"}>{open?fmtLeft(left):"Window closed"}</b></div>
-     {err&&<p className="co-err">{err}</p>}
-     <button className="btn btn-primary co-pay-btn" disabled={!open||busy||fee==null} onClick={payCard}>{busy?"Connecting to Sifalo…":"Pay fee by card"}</button>
-     <p className="co-fine">Card details are entered on the Sifalo secure page. Your Performance account opens automatically after payment.</p>
-   </div></PortalShell>}
+ return <PortalShell active="/portal/accounts">
+   <PtHead title="Performance fee" text="Pay the fee to open your Performance account. It starts trading as soon as payment is confirmed."/>
+   <div className="fee-wrap">
+     <div className="fee-main">
+       <div className="fee-timer pt-card">
+         <div className="fee-timer-top"><span className="fee-ico"><Clock size={18}/></span><div><b>Time left to pay</b><small>72 hours from your pass</small></div></div>
+         <div className={"fee-digits"+(open?"":" is-closed")}>{open?<><span>{tl.h}<em>h</em></span><span>{tl.m}<em>m</em></span><span>{tl.s}<em>s</em></span></>:<span className="fee-closed-txt">Window closed</span>}</div>
+         <div className="fee-bar"><i style={{width:pct+"%"}}/></div>
+       </div>
+
+       <div className="pt-card fee-card">
+         <div className="fee-card-head"><span className="fee-ico"><Shield size={18}/></span><div><b>Account</b><small>{acc.programs?.name||"Pay After Pass"} · ${acc.account_sizes?.amount||"-"}</small></div><span className="fee-acc-no">{acc.account_number}</span></div>
+         <div className="fee-line"><span>Performance fee</span><b>{fee!=null?"$"+fee.toFixed(2):"-"}</b></div>
+         {applied&&<div className="fee-line is-disc"><span>Discount <em>{code.toUpperCase()}</em></span><b>−${Number(applied.discount).toFixed(2)}</b></div>}
+         <div className="fee-line fee-total"><span>Total due</span><b>{total!=null?"$"+Number(total).toFixed(2):"-"}</b></div>
+       </div>
+
+       <div className="pt-card fee-card">
+         <div className="fee-card-head"><span className="fee-ico"><Tag size={18}/></span><div><b>Discount code</b><small>Applies to card and crypto payments</small></div></div>
+         <div className="fee-promo">
+           <input value={code} onChange={e=>{setCode(e.target.value.toUpperCase());setApplied(null);setPromoMsg("")}} placeholder="Enter code" disabled={!open}/>
+           <button className="btn btn-ghost" onClick={applyCode} disabled={!open||!code.trim()||checking}>{checking?"Checking…":applied?"Applied":"Apply"}</button>
+         </div>
+         {promoMsg&&<p className="fee-promo-msg is-bad">{promoMsg}</p>}
+         {applied&&<p className="fee-promo-msg is-ok">Code applied. You pay ${Number(applied.total).toFixed(2)}.</p>}
+       </div>
+     </div>
+
+     <aside className="fee-side">
+       <div className="pt-card fee-pay">
+         <h3>Pay the fee</h3>
+         <p className="fee-amt">{total!=null?"$"+Number(total).toFixed(2):"-"}<small>USD</small></p>
+         {err&&<p className="co-err">{err}</p>}
+         <button className="fee-pay-btn card" disabled={!open||busy||fee==null} onClick={payCard}>
+           <span className="fee-pay-ico"><CreditCard size={18}/></span><span>{busy?"Connecting to Sifalo…":"Pay by card"}</span><ArrowRight size={16}/>
+         </button>
+         <button className="fee-pay-btn crypto" disabled title="Crypto payment for the performance fee is coming soon">
+           <span className="fee-pay-ico"><Wallet size={18}/></span><span>Pay with crypto</span><small>Soon</small>
+         </button>
+         <ul className="fee-trust">
+           <li><ShieldCheck size={14}/> Card details are entered on the secure Sifalo page</li>
+           <li><CheckCircle2 size={14}/> Your Performance account opens automatically after payment</li>
+         </ul>
+       </div>
+     </aside>
+   </div>
+ </PortalShell>}
 
 function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(loc.search);
  const feeId=qs.get("fee");
