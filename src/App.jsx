@@ -913,10 +913,10 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const rowId=a&&a.rowId;
  const [feeAcc,setFeeAcc]=useState(null);
  // Pay After Pass: a passed Phase 1 shows the Performance fee button while the fee window is open
- useEffect(()=>{if(!a||a.rawStatus!=="passed"||!/pay after/i.test(String(a.program)))return;let live=true;
+ useEffect(()=>{if(!a||!/pay after/i.test(String(a.program))||!/phase 1/i.test(String(a.phase||"Phase 1")))return;let live=true;
    (async()=>{const {data}=await supabase.from("trading_accounts").select("id,account_number,fee_due_at,programs!inner(name)").eq("status","awaiting_fee").ilike("programs.name","%pay after%").order("created_at",{ascending:false}).limit(1).maybeSingle();
      if(live)setFeeAcc(data&&data.fee_due_at&&new Date(data.fee_due_at).getTime()>Date.now()?data:null)})();
-   return()=>{live=false}},[a&&a.rawStatus,a&&a.program]);
+   return()=>{live=false}},[a&&a.rawStatus,a&&a.program,a&&a.phase]);
 
  useEffect(()=>{if(!rowId)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("equity_snapshots").select("ts,balance,equity").eq("account_id",rowId).order("ts",{ascending:true}).limit(20000);if(live&&data)setSnaps(data)};
