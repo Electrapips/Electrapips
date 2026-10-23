@@ -4,7 +4,7 @@ import { loadSiteData } from "./lib/loadSiteData";
 import CookieConsent from "./CookieConsent.jsx";
 import { supabase } from "./lib/supabaseClient";
 import { loadPortalData, buildView, EMPTY_VIEW } from "./lib/portalData";
-import {ArrowLeft,ShieldCheck,Layers,Target,Globe,Compass,TrendingUp,Zap,Check,X,Wallet,Clock,Repeat,ArrowRight,CreditCard,Rocket,Star,Info,RotateCcw,ChevronDown,MessageCircle,User,Search,Mail,Lock,Eye,EyeOff,Send,Trophy,UserPlus,Share2,LifeBuoy,Users,LayoutDashboard,Award,Gift,Copy,ArrowDownToLine,ArrowUpRight,ArrowDownRight,CheckCircle2,XCircle,Timer,Tag,LogOut,Bell,Download,QrCode,Percent,FileText,BarChart3,Settings,Upload,Phone,Globe2,Smartphone} from "lucide-react";
+import {ArrowLeft,Shield,ShieldCheck,Layers,Target,Globe,Compass,TrendingUp,Zap,Check,X,Wallet,Clock,Repeat,ArrowRight,CreditCard,Rocket,Star,Info,RotateCcw,ChevronDown,MessageCircle,User,Search,Mail,Lock,Eye,EyeOff,Send,Trophy,UserPlus,Share2,LifeBuoy,Users,LayoutDashboard,Award,Gift,Copy,ArrowDownToLine,ArrowUpRight,ArrowDownRight,CheckCircle2,XCircle,Timer,Tag,LogOut,Bell,Download,QrCode,Percent,FileText,BarChart3,Settings,Upload,Phone,Globe2,Smartphone} from "lucide-react";
 import { HashRouter, Routes, Route, Link, useLocation, useParams } from "react-router-dom";
 import "./styles.css";
 import {siInstagram,siX,siYoutube,siTelegram,siFacebook,siTiktok,siDiscord,siWhatsapp} from "simple-icons";
