@@ -911,12 +911,7 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const pos=V&&a?V.openTrades.filter(t=>t.accountId===a.rowId):[];
  const hist=V&&a?V.closedTrades.filter(t=>t.accountId===a.rowId):[];
  const rowId=a&&a.rowId;
- const [feeAcc,setFeeAcc]=useState(null);
- // Pay After Pass: a passed Phase 1 shows the Performance fee button while the fee window is open
- useEffect(()=>{if(!a||!/pay after/i.test(String(a.program))||!/phase 1/i.test(String(a.phase||"Phase 1")))return;let live=true;
-   (async()=>{const {data}=await supabase.from("trading_accounts").select("id,account_number,fee_due_at,programs!inner(name)").eq("status","awaiting_fee").ilike("programs.name","%pay after%").order("created_at",{ascending:false}).limit(1).maybeSingle();
-     if(live)setFeeAcc(data&&data.fee_due_at&&new Date(data.fee_due_at).getTime()>Date.now()?data:null)})();
-   return()=>{live=false}},[a&&a.rawStatus,a&&a.program,a&&a.phase]);
+ const isPapPhase1Passed=!!a&&a.rawStatus==="passed"&&/pay after/i.test(String(a.program))&&/phase 1/i.test(String(a.phase||"Phase 1"));
 
  useEffect(()=>{if(!rowId)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("equity_snapshots").select("ts,balance,equity").eq("account_id",rowId).order("ts",{ascending:true}).limit(20000);if(live&&data)setSnaps(data)};
@@ -925,7 +920,7 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const cutoff=days?Date.now()-days*86400000:0;
  const rows=(snaps||[]).map(s=>({t:new Date(s.ts).getTime(),eq:Number(s.equity),bal:Number(s.balance)})).filter(x=>x.t>=cutoff);
  if(a)rows.push({t:Date.now(),eq:a.equity,bal:a.balance});
- return <PortalShell active="/portal/accounts">{feeAcc&&<div className="pt-card fee-banner"><div><b>You passed Phase 1. Pay the performance fee to open your Performance account.</b><small>Window: 72 hours from your pass. Performance account {feeAcc.account_number}.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+feeAcc.id}>Pay performance fee</Link></div>}<Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
+ return <PortalShell active="/portal/accounts">{isPapPhase1Passed&&<div className="pt-card fee-banner"><div><b>You passed Phase 1. Pay the performance fee to open your Performance account.</b><small>You have 72 hours from your pass to pay.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+a.rowId}>Pay performance fee</Link></div>}<Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
  {!a?<NoData text="Account not found or not yet assigned to you."/>:<>
  <PtHead title={a.id} text={a.size+" "+a.program+(a.phase?" · "+a.phase:"")}><span className={"pt-status "+(a.status==="ACTIVE"?"on":a.status==="PASSED"?"pass":"")}>{a.status}</span></PtHead>
  <div className="pt-grid6"><PtStat label="Balance" value={fm(a.balance)}/><PtStat label="Equity" value={fm(a.equity)}/><PtStat label="Profit" value={fmS(a.profit)} tone={a.profit>=0?"pos":""}/><PtStat label="Floating P/L" value={fmS(a.floating)}/><PtStat label="Daily Drawdown" value={a.dailyDD+"%"}/><PtStat label="Max Drawdown" value={a.maxDD+"%"}/></div>
@@ -1066,13 +1061,14 @@ function PortalFeePay({accountId}){
  const [code,setCode]=useState(""),[applied,setApplied]=useState(null),[promoMsg,setPromoMsg]=useState(""),[checking,setChecking]=useState(false);
  const [busy,setBusy]=useState(false),[err,setErr]=useState("");
  useEffect(()=>{let live=true;(async()=>{
-   const {data:a}=await supabase.from("trading_accounts").select("id,account_number,status,fee_due_at,program_id,size_id,programs(name),account_sizes(amount)").eq("id",accountId).maybeSingle();
+   const {data:a}=await supabase.from("trading_accounts").select("id,account_number,status,result_at,fee_due_at,program_id,size_id,programs(name),account_sizes(amount)").eq("id",accountId).maybeSingle();
    if(!live)return;setAcc(a||false);
    if(a){const {data:p}=await supabase.from("program_prices").select("charged_on_pass").eq("program_id",a.program_id).eq("size_id",a.size_id).limit(1).maybeSingle();if(live)setFee(p?Number(p.charged_on_pass):null)}
  })();return()=>{live=false}},[accountId]);
  useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t)},[]);
- const left=acc&&acc.fee_due_at?new Date(acc.fee_due_at).getTime()-now:0;
- const open=!!acc&&acc.status==="awaiting_fee"&&left>0;
+ const deadline=acc?(acc.status==="passed"&&acc.result_at?new Date(acc.result_at).getTime()+72*3600*1000:(acc.status==="awaiting_fee"&&acc.fee_due_at?new Date(acc.fee_due_at).getTime():0)):0;
+ const left=deadline-now;
+ const open=!!acc&&(acc.status==="passed"||acc.status==="awaiting_fee")&&left>0;
  const total=applied?applied.total:fee;
  const pct=Math.max(0,Math.min(100,(left/(72*3600*1000))*100));
  const fmtLeft=(ms)=>{if(ms<=0)return {h:"00",m:"00",s:"00"};const t=Math.floor(ms/1000);const p=(n)=>String(n).padStart(2,"0");return {h:p(Math.floor(t/3600)),m:p(Math.floor(t%3600/60)),s:p(t%60)}};
