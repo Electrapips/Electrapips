@@ -911,6 +911,13 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const pos=V&&a?V.openTrades.filter(t=>t.accountId===a.rowId):[];
  const hist=V&&a?V.closedTrades.filter(t=>t.accountId===a.rowId):[];
  const rowId=a&&a.rowId;
+ const [feeAcc,setFeeAcc]=useState(null);
+ // Pay After Pass: a passed Phase 1 shows the Performance fee button while the fee window is open
+ useEffect(()=>{if(!a||a.rawStatus!=="passed"||!/pay after/i.test(String(a.program)))return;let live=true;
+   (async()=>{const {data}=await supabase.from("trading_accounts").select("id,account_number,fee_due_at,programs!inner(name)").eq("status","awaiting_fee").ilike("programs.name","%pay after%").order("created_at",{ascending:false}).limit(1).maybeSingle();
+     if(live)setFeeAcc(data&&data.fee_due_at&&new Date(data.fee_due_at).getTime()>Date.now()?data:null)})();
+   return()=>{live=false}},[a&&a.rawStatus,a&&a.program]);
+
  useEffect(()=>{if(!rowId)return;let live=true;
    const load=async()=>{const {data}=await supabase.from("equity_snapshots").select("ts,balance,equity").eq("account_id",rowId).order("ts",{ascending:true}).limit(20000);if(live&&data)setSnaps(data)};
    load();const t=setInterval(load,5000);return()=>{live=false;clearInterval(t)}},[rowId]);
@@ -918,7 +925,7 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const cutoff=days?Date.now()-days*86400000:0;
  const rows=(snaps||[]).map(s=>({t:new Date(s.ts).getTime(),eq:Number(s.equity),bal:Number(s.balance)})).filter(x=>x.t>=cutoff);
  if(a)rows.push({t:Date.now(),eq:a.equity,bal:a.balance});
- return <PortalShell active="/portal/accounts"><Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
+ return <PortalShell active="/portal/accounts">{feeAcc&&<div className="pt-card fee-banner"><div><b>You passed Phase 1. Pay the performance fee to open your Performance account.</b><small>Window: 72 hours from your pass. Performance account {feeAcc.account_number}.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+feeAcc.id}>Pay performance fee</Link></div>}<Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
  {!a?<NoData text="Account not found or not yet assigned to you."/>:<>
  <PtHead title={a.id} text={a.size+" "+a.program+(a.phase?" · "+a.phase:"")}><span className={"pt-status "+(a.status==="ACTIVE"?"on":a.status==="PASSED"?"pass":"")}>{a.status}</span></PtHead>
  <div className="pt-grid6"><PtStat label="Balance" value={fm(a.balance)}/><PtStat label="Equity" value={fm(a.equity)}/><PtStat label="Profit" value={fmS(a.profit)} tone={a.profit>=0?"pos":""}/><PtStat label="Floating P/L" value={fmS(a.floating)}/><PtStat label="Daily Drawdown" value={a.dailyDD+"%"}/><PtStat label="Max Drawdown" value={a.maxDD+"%"}/></div>
