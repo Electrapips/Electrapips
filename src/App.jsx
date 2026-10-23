@@ -920,7 +920,7 @@ function PortalAccountDetail(){const {id}=useParams();const P=usePortalData();co
  const cutoff=days?Date.now()-days*86400000:0;
  const rows=(snaps||[]).map(s=>({t:new Date(s.ts).getTime(),eq:Number(s.equity),bal:Number(s.balance)})).filter(x=>x.t>=cutoff);
  if(a)rows.push({t:Date.now(),eq:a.equity,bal:a.balance});
- return <PortalShell active="/portal/accounts">{isPapPhase1Passed&&<div className="pt-card fee-banner"><div><b>You passed Phase 1. Pay the performance fee to open your Performance account.</b><small>You have 72 hours from your pass to pay.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+a.rowId}>Pay performance fee</Link></div>}<Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
+ return <PortalShell active="/portal/accounts">{!!a&&a.rawStatus==="expired"&&/pay after/i.test(String(a.program))&&<div className="pt-card fee-banner fee-expired"><div><b>The 72-hour window to pay the performance fee has ended.</b><small>This account has expired. To continue, start a new Pay After Pass Phase 1 challenge.</small></div><Link className="btn btn-primary" to="/portal/challenges">Start a new challenge</Link></div>}{isPapPhase1Passed&&<div className="pt-card fee-banner"><div><b>You passed Phase 1. Pay the performance fee to open your Performance account.</b><small>You have 72 hours from your pass to pay.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+a.rowId}>Pay performance fee</Link></div>}<Link to="/portal/accounts" className="pt-back"><ChevronDown size={14} style={{transform:"rotate(90deg)"}}/>My Accounts</Link>
  {!a?<NoData text="Account not found or not yet assigned to you."/>:<>
  <PtHead title={a.id} text={a.size+" "+a.program+(a.phase?" · "+a.phase:"")}><span className={"pt-status "+(a.status==="ACTIVE"?"on":a.status==="PASSED"?"pass":"")}>{a.status}</span></PtHead>
  <div className="pt-grid6"><PtStat label="Balance" value={fm(a.balance)}/><PtStat label="Equity" value={fm(a.equity)}/><PtStat label="Profit" value={fmS(a.profit)} tone={a.profit>=0?"pos":""}/><PtStat label="Floating P/L" value={fmS(a.floating)}/><PtStat label="Daily Drawdown" value={a.dailyDD+"%"}/><PtStat label="Max Drawdown" value={a.maxDD+"%"}/></div>
@@ -1098,7 +1098,7 @@ function PortalFeePay({accountId}){
      <div className="fee-main">
        <div className="fee-timer pt-card">
          <div className="fee-timer-top"><span className="fee-ico"><Clock size={18}/></span><div><b>Time left to pay</b><small>72 hours from your pass</small></div></div>
-         <div className={"fee-digits"+(open?"":" is-closed")}>{open?<><span>{tl.h}<em>h</em></span><span>{tl.m}<em>m</em></span><span>{tl.s}<em>s</em></span></>:<span className="fee-closed-txt">Window closed</span>}</div>
+         <div className={"fee-digits"+(open?"":" is-closed")}>{open?<><span>{tl.h}<em>h</em></span><span>{tl.m}<em>m</em></span><span>{tl.s}<em>s</em></span></>:<span className="fee-closed-txt">Window closed. Start a new Pay After Pass challenge.</span>}</div>
          <div className="fee-bar"><i style={{width:pct+"%"}}/></div>
        </div>
 

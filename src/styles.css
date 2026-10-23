@@ -1694,3 +1694,4 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .fee-trust li{display:flex;gap:8px;align-items:flex-start}
 .fee-trust svg{flex:none;margin-top:2px;color:#4ade80}
 @media(max-width:900px){.fee-wrap{grid-template-columns:1fr}.fee-side{position:static}}
+.fee-expired{border-color:rgba(251,113,133,.45)!important}
