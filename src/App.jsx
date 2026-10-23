@@ -865,6 +865,7 @@ function PortalAccounts(){const P=usePortalData();const V=P.view;const [f,setF]=
    <div className="acc-tabs">{FILTERS.map(k=><button key={k} className={"acc-tab"+(f===k?" on":"")} onClick={()=>setF(k)}>{k}<em>{cnt(k)}</em></button>)}</div>
    <div className="acc-search"><Search size={16}/><input placeholder="Search account or program…" value={q} onChange={e=>setQ(e.target.value)}/></div>
  </div>
+ {V&&all.filter(a=>a.rawStatus==="awaiting_fee").map(a=><div key={a.rowId} className="pt-card fee-banner"><div><b>Pay the performance fee</b><small>{a.program} · {a.size} · Account {a.id}</small><small>Pay within 72 hours to open your Performance account.</small></div><Link className="btn btn-primary" to={"/portal/checkout?fee="+a.rowId}>Pay fee</Link></div>)}
  {!V?<NoData text="Sign in to see your accounts."/>:!list.length?<NoData text={f==="Archived"?"No archived accounts.":"No accounts match this filter."}/>:
  <div className="pt-acc-list">{list.map(ac=><div className={"pt-acc-card"+(ac.archived?" is-archived":"")} key={ac.rowId}>
    <div className="pt-acc-top"><div><h3>{ac.size} {ac.program}</h3><span className="pt-id">{ac.id}</span>{ac.phase&&<span className="pt-phase">{ac.phase}</span>}{ac.openedAt&&<span className="acc-date">Opened {new Date(ac.openedAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}</span>}</div>
@@ -1053,7 +1054,40 @@ function PortalChallenges(){const [step,setStep]=useState(1);const [prog,setProg
  </PortalShell>}
 
 const SLUG_OF={"2-Step Challenge":"2-step","1-Step Challenge":"1-step","Pay After Pass":"pay-after-pass","Direct":"direct","2-Step Sprint Challenge":"2-step-sprint"};
+function PortalFeePay({accountId}){
+ const [acc,setAcc]=useState(null),[fee,setFee]=useState(null),[busy,setBusy]=useState(false),[err,setErr]=useState(""),[now,setNow]=useState(Date.now());
+ useEffect(()=>{let live=true;(async()=>{
+   const {data:a}=await supabase.from("trading_accounts").select("id,account_number,status,fee_due_at,program_id,size_id,programs(name),account_sizes(amount)").eq("id",accountId).maybeSingle();
+   if(!live)return;setAcc(a||false);
+   if(a){const {data:p}=await supabase.from("program_prices").select("charged_on_pass").eq("program_id",a.program_id).eq("size_id",a.size_id).limit(1).maybeSingle();if(live)setFee(p?Number(p.charged_on_pass):null)}
+ })();return()=>{live=false}},[accountId]);
+ useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t)},[]);
+ const left=acc&&acc.fee_due_at?new Date(acc.fee_due_at).getTime()-now:0;
+ const fmtLeft=(ms)=>{if(ms<=0)return "0h 0m 0s";const t=Math.floor(ms/1000);return Math.floor(t/3600)+"h "+Math.floor(t%3600/60)+"m "+(t%60)+"s"};
+ const open=!!acc&&acc.status==="awaiting_fee"&&left>0;
+ const payCard=async()=>{setErr("");setBusy(true);
+   const {data,error}=await supabase.functions.invoke("sifalo-checkout",{body:{fee_account_id:accountId}});
+   if(error||!data||!data.payment_url){let m="";try{m=(await error.context.json()).error||""}catch(x){}setErr(m||"Could not start the payment. Please try again.");setBusy(false);return}
+   window.location.href=data.payment_url};
+ if(acc===null)return <PortalShell active="/portal/accounts"><NoData text="Loading…"/></PortalShell>;
+ if(acc===false)return <PortalShell active="/portal/accounts"><NoData text="Account not found."/></PortalShell>;
+ return <PortalShell active="/portal/accounts"><PtHead title="Performance fee" text="Pay the fee to open your Performance account."/>
+   <div className="pt-card fee-page">
+     <div className="fee-row"><span>Account</span><b>{acc.account_number}</b></div>
+     <div className="fee-row"><span>Program</span><b>{acc.programs?.name||"-"} · ${acc.account_sizes?.amount||"-"}</b></div>
+     <div className="fee-row"><span>Performance fee</span><b>{fee!=null?"$"+fee.toFixed(2):"-"}</b></div>
+     <div className="fee-row"><span>Time left to pay</span><b className={open?"":"fee-closed"}>{open?fmtLeft(left):"Window closed"}</b></div>
+     {err&&<p className="co-err">{err}</p>}
+     <button className="btn btn-primary co-pay-btn" disabled={!open||busy||fee==null} onClick={payCard}>{busy?"Connecting to Sifalo…":"Pay fee by card"}</button>
+     <p className="co-fine">Card details are entered on the Sifalo secure page. Your Performance account opens automatically after payment.</p>
+   </div></PortalShell>}
+
 function PortalCheckout(){const loc=useLocation();const qs=new URLSearchParams(loc.search);
+ const feeId=qs.get("fee");
+ if(feeId)return <PortalFeePay accountId={feeId}/>;
+ return <PortalCheckoutMain/>}
+
+function PortalCheckoutMain(){const loc=useLocation();const qs=new URLSearchParams(loc.search);
  const program=qs.get("program")||"",size=qs.get("size")||"";
  const priceTable=program==="2-Step Sprint Challenge"?SPRINT.prices:PRICES[program];
  const listStr=(priceTable&&priceTable[size])||"";

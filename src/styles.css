@@ -1639,3 +1639,11 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 .co-field{display:grid;gap:6px;font:600 13px var(--font);color:#cbd5e1;margin-bottom:12px}
 .co-field input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid #1b2a4a;background:#0a1120;color:#fff;font:inherit;outline:none}
 .co-field input:focus{border-color:#2f7bff;box-shadow:0 0 0 3px rgba(47,123,255,.2)}
+
+/* Pay After Pass performance fee */
+.fee-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;border-color:rgba(245,158,11,.45)}
+.fee-banner small{display:block;color:#94a3b8;font-size:12px;margin-top:4px}
+.fee-page{display:grid;gap:12px}
+.fee-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #16223c;color:#94a3b8;font-size:14px}
+.fee-row b{color:#fff;font:600 15px var(--font)}
+.fee-closed{color:#fb7185!important}
