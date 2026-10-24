@@ -1026,11 +1026,25 @@ function AffiliatePayouts(){
    {reqs.length?<div className="table-wrap" style={{marginTop:14}}><table className="table"><thead><tr><th>Requested</th><th>Amount</th><th>Status</th><th>Transaction</th></tr></thead><tbody>{reqs.map(r=><tr key={r.id}><td>{new Date(r.created_at).toLocaleDateString("en-GB")}</td><td>{fm(Number(r.amount))}</td><td><span className={"pt-pill "+r.status}>{r.status==="pending"?"Under review":r.status==="paid"?"Paid":"Rejected"}</span></td><td>{r.tx_id||"—"}</td></tr>)}</tbody></table></div>:null}
  </>}
 
+function AffiliateApply(){
+ const [st,setSt]=useState(undefined),[busy,setBusy]=useState(false),[msg,setMsg]=useState("");
+ const load=async()=>{const {data,error}=await supabase.rpc("my_affiliate_status");setSt(error?null:(data||null))};
+ useEffect(()=>{load()},[]);
+ const apply=async()=>{setBusy(true);setMsg("");const {error}=await supabase.rpc("apply_affiliate");
+   if(error){setMsg(error.message)}else{setMsg("Application submitted. We will review it and notify you.")}
+   await load();setBusy(false)};
+ if(st===undefined)return <NoData text="Loading…"/>;
+ if(st==="pending")return <div className="pt-card"><h2>Application under review</h2><p style={{color:"#94a3b8"}}>Your affiliate application was received. Once approved, your referral link and payouts will appear here.</p></div>;
+ if(st==="rejected")return <div className="pt-card"><h2>Application not approved</h2><p style={{color:"#94a3b8"}}>Please contact support@electrapips.com for more information.</p></div>;
+ return <div className="pt-card"><h2>Become an affiliate</h2><p style={{color:"#94a3b8"}}>Apply to get your referral link. Earn commissions by referring new traders to ElectraPips. Payouts are in cryptocurrency, with a minimum of $100.</p>
+   <div style={{marginTop:14,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}><button className="btn btn-primary" disabled={busy} onClick={apply}>{busy?"Submitting…":"Apply now"}</button>{msg&&<span style={{color:"#94a3b8",fontSize:13}}>{msg}</span>}</div></div>;
+}
+
 function PortalAffiliate(){const P=usePortalData();const V=P.view;const A=V&&V.affiliate;const [copied,setCopied]=useState(false);
  const link="electrapips.com/?ref="+(A?A.code:"");
  const copy=()=>{try{navigator.clipboard.writeText("https://"+link);setCopied(true);setTimeout(()=>setCopied(false),1800)}catch(e){}};
  return <PortalShell active="/portal/affiliate"><PtHead title="Affiliate Program" text="Earn commissions by referring new traders to ElectraPips."/>
- {!A?<NoData text="You are not registered as an affiliate yet."/>:<>
+ {!A?<AffiliateApply/>:<>
  <div className="pt-card"><h2>Referral Link</h2><div className="pt-refbox"><span>{link}</span><button className="btn btn-primary" onClick={copy}><Copy size={15}/>{copied?"Copied!":"Copy Link"}</button></div></div>
  <div className="pt-grid6" style={{marginTop:22}}><PtStat label="Registrations" value={A.registrations}/><PtStat label="Commission Pending" value={fm(A.pending)}/><PtStat label="Commission Paid" value={fm(A.paid)}/><PtStat label="Status" value={A.status||"—"}/></div>
  <AffiliatePayouts/>
