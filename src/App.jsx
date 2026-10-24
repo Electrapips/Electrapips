@@ -1002,6 +1002,30 @@ function PortalCertificates(){const P=usePortalData();const V=P.view;const [open
  </div></div>}
  </PortalShell>}
 
+function AffiliatePayouts(){
+ const [bal,setBal]=useState(null),[reqs,setReqs]=useState([]),[busy,setBusy]=useState(false),[msg,setMsg]=useState("");
+ const load=async()=>{const {data}=await supabase.rpc("affiliate_balance");setBal(data&&data[0]?data[0]:{available:0,pending:0,requested:0,paid:0});
+   const {data:r}=await supabase.from("affiliate_payout_requests").select("id,amount,status,tx_id,created_at,reviewed_at").order("created_at",{ascending:false}).limit(20);setReqs(r||[])};
+ useEffect(()=>{load()},[]);
+ const hasOpen=reqs.some(r=>r.status==="pending");
+ const avail=Number(bal?bal.available:0);
+ const canRequest=!busy&&!hasOpen&&avail>=100;
+ const request=async()=>{setBusy(true);setMsg("");const {error}=await supabase.rpc("request_affiliate_payout");
+   setMsg(error?error.message:"Payout request submitted. You can track its status below.");await load();setBusy(false)};
+ return <>
+   <h2 className="pt-sec">Payouts</h2>
+   <div className="pt-grid6"><PtStat label="Available" value={fm(avail)}/><PtStat label="Requested" value={fm(Number(bal?bal.requested:0))}/><PtStat label="Paid" value={fm(Number(bal?bal.paid:0))}/><PtStat label="Minimum" value="$100"/></div>
+   <div className="pt-card" style={{marginTop:14}}>
+     <p style={{margin:0,color:"#94a3b8",fontSize:14}}>Payouts are in cryptocurrency only. Minimum $100 of approved commission. You can request a payout any day. Pending commissions are not counted.</p>
+     <div style={{marginTop:12,display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+       <button className="btn btn-primary" disabled={!canRequest} onClick={request}>{busy?"Requesting…":"Request payout"}</button>
+       {hasOpen&&<span style={{color:"#94a3b8",fontSize:13}}>You already have a payout request in progress.</span>}
+       {msg&&<span style={{color:"#94a3b8",fontSize:13}}>{msg}</span>}
+     </div>
+   </div>
+   {reqs.length?<div className="table-wrap" style={{marginTop:14}}><table className="table"><thead><tr><th>Requested</th><th>Amount</th><th>Status</th><th>Transaction</th></tr></thead><tbody>{reqs.map(r=><tr key={r.id}><td>{new Date(r.created_at).toLocaleDateString("en-GB")}</td><td>{fm(Number(r.amount))}</td><td><span className={"pt-pill "+r.status}>{r.status==="pending"?"Under review":r.status==="paid"?"Paid":"Rejected"}</span></td><td>{r.tx_id||"—"}</td></tr>)}</tbody></table></div>:null}
+ </>}
+
 function PortalAffiliate(){const P=usePortalData();const V=P.view;const A=V&&V.affiliate;const [copied,setCopied]=useState(false);
  const link="electrapips.com/?ref="+(A?A.code:"");
  const copy=()=>{try{navigator.clipboard.writeText("https://"+link);setCopied(true);setTimeout(()=>setCopied(false),1800)}catch(e){}};
@@ -1009,6 +1033,7 @@ function PortalAffiliate(){const P=usePortalData();const V=P.view;const A=V&&V.a
  {!A?<NoData text="You are not registered as an affiliate yet."/>:<>
  <div className="pt-card"><h2>Referral Link</h2><div className="pt-refbox"><span>{link}</span><button className="btn btn-primary" onClick={copy}><Copy size={15}/>{copied?"Copied!":"Copy Link"}</button></div></div>
  <div className="pt-grid6" style={{marginTop:22}}><PtStat label="Registrations" value={A.registrations}/><PtStat label="Commission Pending" value={fm(A.pending)}/><PtStat label="Commission Paid" value={fm(A.paid)}/><PtStat label="Status" value={A.status||"—"}/></div>
+ <AffiliatePayouts/>
  <h2 className="pt-sec">Referral History</h2>
  {A.history.length?<div className="table-wrap"><table className="table"><thead><tr><th>Date</th><th>Commission</th><th>Status</th></tr></thead><tbody>{A.history.map((r,i)=><tr key={i}><td>{r.date}</td><td className="pos">{r.commission}</td><td><span className={"pt-pill "+r.status.toLowerCase()}>{r.status}</span></td></tr>)}</tbody></table></div>:<NoData text="No referrals yet."/>}
  </>}</PortalShell>}
